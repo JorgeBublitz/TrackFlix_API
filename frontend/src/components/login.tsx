@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import { Login as LoginIcon } from "@mui/icons-material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { socket } from "../socket"; // ⚠ ajuste o caminho conforme sua pasta
 
 const linkStyle = {
   color: "primary.main",
@@ -48,11 +47,6 @@ const Login: React.FC = () => {
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
         console.log("Login bem-sucedido!");
-
-        // Conecta socket com token
-        socket.auth = { token: accessToken };
-        socket.connect();
-
         // Navega para chat após login
         navigate("/chat");
       } else {
