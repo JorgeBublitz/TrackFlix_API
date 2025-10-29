@@ -36,7 +36,7 @@ const SignUp: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-      const data = await res.json();
+      const data = await res.json(); 
 
       if (res.ok) navigate("/");
       else alert(data.message || "Erro no cadastro");
