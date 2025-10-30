@@ -126,6 +126,7 @@ export class AuthController {
       });
     }
   }
+
   static async me(req: Request, res: Response): Promise<Response> {
     try {
       if (!req.user) {

@@ -8,53 +8,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 🧑 Usuário do sistema
 model User {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  password     String
-  refreshToken String? // usado com JWT refresh
-  createdAt    DateTime @default(now())
-
-  messages Message[]  @relation("UserMessages")
-  rooms    RoomUser[]
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  refreshTokens RefreshToken[] // Relação 1:N
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
-// 💬 Mensagens enviadas
-model Message {
+model RefreshToken {
   id        String   @id @default(uuid())
-  content   String
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
   createdAt DateTime @default(now())
-
-  // relação
-  senderId String
-  roomId   String
-
-  sender User @relation("UserMessages", fields: [senderId], references: [id])
-  room   Room @relation(fields: [roomId], references: [id])
-}
-
-// 👥 Sala (pode ser chat privado ou grupo)
-model Room {
-  id        String   @id @default(uuid())
-  name      String?
-  isGroup   Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  messages Message[]
-  users    RoomUser[]
-}
-
-// 🔗 Tabela intermediária: usuários por sala
-model RoomUser {
-  id       String   @id @default(uuid())
-  userId   String
-  roomId   String
-  joinedAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-  room Room @relation(fields: [roomId], references: [id])
-
-  @@unique([userId, roomId])
+  expiresAt DateTime
 }

@@ -6,12 +6,12 @@ import {
   Box,
   Typography,
   Paper,
-  Checkbox,
-  FormControlLabel,
   Link,
 } from "@mui/material";
 import { Login as LoginIcon } from "@mui/icons-material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const linkStyle = {
   color: "primary.main",
@@ -27,12 +27,11 @@ const linkStyle = {
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -43,15 +42,13 @@ const Login: React.FC = () => {
       if (res.ok) {
         const { accessToken, refreshToken } = data.data;
 
-        // Salva tokens
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
         console.log("Login bem-sucedido!");
-        // Navega para chat após login
         navigate("/chat");
       } else {
         console.error(data.message);
-        alert(data.message); // opcional, para feedback ao usuário
+        alert(data.message);
       }
     } catch (err) {
       console.error("Erro:", err);
@@ -98,38 +95,26 @@ const Login: React.FC = () => {
           <TextField
             label="Email"
             type="email"
+            name="login_email"
             fullWidth
             margin="normal"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
-          />
-          <TextField
-            label="Senha"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             inputProps={{ autoComplete: "off" }}
             sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
           />
 
-          <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  color="primary"
-                />
-              }
-              label="Lembrar-me"
-            />
-            <Link href="#" underline="none" sx={linkStyle}>
-              Esqueceu a senha?
-            </Link>
-          </Box>
+          <TextField
+            label="Senha"
+            type="password"
+            name="login_password"
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            inputProps={{ autoComplete: "new-password" }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+          />
 
           <Button
             type="submit"

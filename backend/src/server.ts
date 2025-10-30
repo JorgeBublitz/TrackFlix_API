@@ -1,8 +1,8 @@
 import app from './app';
-import { env } from './config/env';
 import prisma from './config/prisma';
 import { createServer } from 'http';
 
+import { env } from './config/env';
 const PORT = env.port;
 
 // Criar servidor HTTP

@@ -1,7 +1,10 @@
 import prisma from '../config/prisma';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 import { HashUtil } from '../utils/hash.util';
 import { JwtUtil } from '../utils/jwt.util';
 import { TokenPair } from '../types/jwt.types';
+
 import { RegisterInput, LoginInput } from '../utils/validation.schemas';
 
 export class AuthService {
@@ -14,7 +17,7 @@ export class AuthService {
   static async getByName(name: string) {
     return prisma.user.findMany({
       where: {
-        nome: {
+        name: {
           contains: name,
           mode: 'insensitive',
         },
@@ -36,7 +39,7 @@ export class AuthService {
       data: {
         email: data.email,
         password: hashedPassword,
-        nome: data.name,
+        name: data.name,
       },
     });
   }
@@ -69,7 +72,7 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
-
+  
   static async refreshAccessToken(refreshToken: string): Promise<TokenPair> {
     const payload = JwtUtil.verifyRefreshToken(refreshToken);
     const { exp, iat, ...cleanPayload } = payload as any;

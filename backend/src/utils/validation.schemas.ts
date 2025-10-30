@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { email, z } from 'zod';
 
 /**
  * Schema de validação para registro de usuário
@@ -35,7 +35,6 @@ export const loginSchema = z.object({
     message: 'Senha é obrigatória',
   }),
 });
-
 /**
  * Schema de validação para refresh token
  */
