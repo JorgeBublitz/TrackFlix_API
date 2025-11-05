@@ -1,28 +1,31 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
-const cors = require("cors");
+import cors from 'cors';
 import routes from './routes';
 
 const app: Application = express();
 
-// permite qualquer origem
+// Middlewares globais
 app.use(cors());
-// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rotas
-app.use('/', routes);
+// Prefixo padrão da API
+app.use('/api', routes);
 
-// Tratamento de rotas não encontradas
+// Health check (fora do prefixo)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'API está funcionando' });
+});
+
+// 404 - rota não encontrada
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });
 
-// Tratamento de erros global
+// Tratamento global de erros
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
 export default app;
-

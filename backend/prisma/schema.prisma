@@ -14,8 +14,38 @@ model User {
   email         String         @unique
   password      String
   refreshTokens RefreshToken[] // Relação 1:N
+
+  messages      Message[]      @relation("UserMessages")
+  roomUser      RoomUser[]
+  
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+model Room {
+  id        String     @id @default(cuid())
+  name      String
+  messages  Message[]  @relation("RoomMessages")
+  users     RoomUser[]
+  createdAt DateTime   @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
+  sender    User     @relation("UserMessages", fields: [senderId], references: [id])
+  roomId    String
+  room      Room     @relation("RoomMessages", fields: [roomId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model RoomUser {
+  id     String @id @default(cuid())
+  userId String
+  roomId String
+  user   User   @relation(fields: [userId], references: [id])
+  room   Room   @relation(fields: [roomId], references: [id])
 }
 
 model RefreshToken {

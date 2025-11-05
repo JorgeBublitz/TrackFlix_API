@@ -1,20 +1,29 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { RegisterInput, LoginInput, RefreshTokenInput } from '../utils/validation.schemas';
+import {
+  RegisterInput,
+  LoginInput,
+  RefreshTokenInput,
+} from '../utils/validation.schemas';
 
 export class AuthController {
-
-  // GET /users
+  /**
+   * GET /getAll
+   * Lista todos os usuários
+   */
   static async getAll(req: Request, res: Response) {
     try {
       const users = await AuthService.getAll();
-      res.json(users);
+      return res.json(users);
     } catch (err: any) {
-      res.status(500).json({ message: err.message });
+      return res.status(500).json({ message: err.message });
     }
   }
 
-  // GET /users/search?name=xxx
+  /**
+   * GET /users?name=xxx
+   * Busca usuários pelo nome
+   */
   static async getByName(req: Request, res: Response) {
     try {
       const { name } = req.query;
@@ -23,12 +32,16 @@ export class AuthController {
       }
 
       const users = await AuthService.getByName(name);
-      res.json(users);
+      return res.json(users);
     } catch (err: any) {
-      res.status(500).json({ message: err.message });
+      return res.status(500).json({ message: err.message });
     }
   }
 
+  /**
+   * POST /register
+   * Registra um novo usuário
+   */
   static async register(req: Request, res: Response): Promise<Response> {
     try {
       const data: RegisterInput = req.body;
@@ -40,7 +53,9 @@ export class AuthController {
       });
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(400).json({
+        // Se o e-mail já existir, retorna 409 (Conflict)
+        const status = error.message.includes('já existe') ? 409 : 400;
+        return res.status(status).json({
           success: false,
           message: error.message,
         });
@@ -53,6 +68,10 @@ export class AuthController {
     }
   }
 
+  /**
+   * POST /login
+   * Faz login e retorna tokens JWT
+   */
   static async login(req: Request, res: Response): Promise<Response> {
     try {
       const data: LoginInput = req.body;
@@ -78,9 +97,22 @@ export class AuthController {
     }
   }
 
+  /**
+   * POST /refresh
+   * Gera novo access token a partir do refresh token
+   */
   static async refresh(req: Request, res: Response): Promise<Response> {
     try {
-      const { refreshToken }: RefreshTokenInput = req.body;
+      const refreshToken =
+        req.body.refreshToken || req.headers['x-refresh-token'];
+
+      if (!refreshToken || typeof refreshToken !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'Refresh token é obrigatório',
+        });
+      }
+
       const tokens = await AuthService.refreshAccessToken(refreshToken);
 
       return res.status(200).json({
@@ -90,7 +122,7 @@ export class AuthController {
       });
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(401).json({
+        return res.status(403).json({
           success: false,
           message: error.message,
         });
@@ -103,6 +135,10 @@ export class AuthController {
     }
   }
 
+  /**
+   * POST /logout
+   * Invalida o refresh token
+   */
   static async logout(req: Request, res: Response): Promise<Response> {
     try {
       const { refreshToken }: RefreshTokenInput = req.body;
@@ -127,6 +163,10 @@ export class AuthController {
     }
   }
 
+  /**
+   * GET /me
+   * Retorna dados do usuário autenticado (JWT válido)
+   */
   static async me(req: Request, res: Response): Promise<Response> {
     try {
       if (!req.user) {

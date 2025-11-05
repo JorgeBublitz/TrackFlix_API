@@ -1,4 +1,3 @@
-// src/components/Login.tsx
 import React, { useState } from "react";
 import {
   TextField,
@@ -7,11 +6,12 @@ import {
   Typography,
   Paper,
   Link,
+  CircularProgress,
 } from "@mui/material";
 import { Login as LoginIcon } from "@mui/icons-material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3003";
 
 const linkStyle = {
   color: "primary.main",
@@ -27,11 +27,19 @@ const linkStyle = {
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Preencha todos os campos!");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/api/auth/v2/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -42,17 +50,20 @@ const Login: React.FC = () => {
       if (res.ok) {
         const { accessToken, refreshToken } = data.data;
 
+        // Armazena os tokens para uso no chat e rotas protegidas
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
-        console.log("Login bem-sucedido!");
+
+        console.log("✅ Login bem-sucedido!");
         navigate("/chat");
       } else {
-        console.error(data.message);
-        alert(data.message);
+        alert(data.message || "Credenciais inválidas");
       }
     } catch (err) {
-      console.error("Erro:", err);
+      console.error("Erro ao conectar-se:", err);
       alert("Erro ao conectar-se ao servidor.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,6 +131,7 @@ const Login: React.FC = () => {
             type="submit"
             variant="contained"
             fullWidth
+            disabled={loading}
             sx={{
               mt: 3,
               py: 1.5,
@@ -130,7 +142,7 @@ const Login: React.FC = () => {
               "&:hover": { transform: "scale(1.02)" },
             }}
           >
-            Entrar
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Entrar"}
           </Button>
 
           <Typography textAlign="center" mt={3} variant="body2" color="text.secondary">
