@@ -76,7 +76,6 @@ export class AuthController {
     try {
       const data: LoginInput = req.body;
       const tokens = await AuthService.login(data);
-
       return res.status(200).json({
         success: true,
         message: 'Login realizado com sucesso',
@@ -147,6 +146,64 @@ export class AuthController {
       return res.status(200).json({
         success: true,
         message: 'Logout realizado com sucesso',
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+      });
+    }
+  }
+
+  /**
+ * PUT /users/:id
+ * Atualiza um usuário existente
+ */
+  static async update(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+
+      await AuthService.update(id, data);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Usuário atualizado com sucesso',
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+      });
+    }
+  }
+
+  /**
+   * DELETE /users/:id
+   * Remove um usuário pelo ID
+   */
+  static async delete(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+      await AuthService.delete(id);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Usuário removido com sucesso',
       });
     } catch (error) {
       if (error instanceof Error) {

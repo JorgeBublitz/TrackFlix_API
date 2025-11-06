@@ -1,0 +1,272 @@
+/* Variáveis CSS para o tema Discord */
+:root {
+  --discord-dark: #202225;
+  --discord-darker: #2f3136;
+  --discord-darkest: #23272a;
+  --discord-gray: #36393f;
+  --discord-light-gray: #40444b;
+  --discord-text: #dcddde;
+  --discord-text-secondary: #a3a6aa;
+  --discord-blue: #7289da;
+  --discord-green: #43b581;
+  --discord-red: #f04747;
+}
+
+/* Estilo global do container principal */
+.chat-container {
+  display: flex;
+  height: 100vh; /* Ocupa a altura total da viewport */
+  background-color: var(--discord-darkest);
+  font-family: "Whitney", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: var(--discord-text);
+  overflow: hidden;
+}
+
+/* -----------------------------------
+   Barra Lateral (Sidebar)
+   ----------------------------------- */
+.sidebar {
+  width: 240px;
+  background-color: var(--discord-dark);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.server-header {
+  padding: 10px 15px;
+  height: 50px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.server-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--discord-text);
+  margin: 0;
+}
+
+.channel-list, .user-list {
+  padding: 10px 8px;
+  overflow-y: auto;
+}
+
+.channel-list h3, .user-list h3 {
+  color: var(--discord-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 10px 0 5px 10px;
+}
+
+.channel-list ul, .user-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.channel-list li {
+  padding: 6px 10px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--discord-text-secondary);
+  transition: background-color 0.15s ease;
+}
+
+.channel-list li:hover {
+  color: var(--discord-text);
+  background-color: var(--discord-light-gray);
+}
+
+.channel-list .active-channel {
+  color: var(--discord-text);
+  background-color: var(--discord-light-gray);
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 14px;
+  color: var(--discord-text-secondary);
+  margin-bottom: 2px;
+}
+
+.user-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.user-status.online {
+  background-color: var(--discord-green);
+}
+
+/* -----------------------------------
+   Conteúdo Principal (Chat)
+   ----------------------------------- */
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--discord-darker);
+}
+
+.chat-header {
+  height: 50px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  background-color: var(--discord-darker);
+  box-shadow: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
+}
+
+.chat-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.status-indicator {
+  font-size: 14px;
+  color: var(--discord-text-secondary);
+}
+
+.status-indicator .connected {
+  color: var(--discord-green);
+  font-weight: 600;
+}
+
+.status-indicator .disconnected {
+  color: var(--discord-red);
+  font-weight: 600;
+}
+
+/* -----------------------------------
+   Área de Mensagens
+   ----------------------------------- */
+.messages-area {
+  flex-grow: 1;
+  padding: 10px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-item {
+  display: flex;
+  padding: 5px 0;
+  margin-bottom: 2px;
+  transition: background-color 0.1s ease;
+}
+
+.message-item:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+.message-avatar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  background-color: var(--discord-blue); /* Cor de avatar de exemplo */
+  margin-right: 10px;
+  margin-top: 5px;
+}
+
+.message-content-wrapper {
+  flex-grow: 1;
+}
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.message-username {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--discord-blue); /* Cor de nome de usuário de exemplo */
+  margin-right: 8px;
+}
+
+.message-timestamp {
+  font-size: 12px;
+  color: var(--discord-text-secondary);
+}
+
+.message-content {
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--discord-text);
+  word-wrap: break-word;
+}
+
+/* Estilo para mensagens próprias (opcional, para diferenciar) */
+.own-message .message-username {
+  color: var(--discord-green);
+}
+
+/* -----------------------------------
+   Área de Input de Mensagem
+   ----------------------------------- */
+.message-input-form {
+  padding: 20px;
+  background-color: var(--discord-darker);
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  display: flex;
+}
+
+.message-input {
+  flex-grow: 1;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--discord-light-gray);
+  color: var(--discord-text);
+  font-size: 16px;
+  margin-right: 10px;
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.message-input:focus {
+  box-shadow: 0 0 0 1px var(--discord-blue);
+}
+
+.message-input::placeholder {
+  color: var(--discord-text-secondary);
+}
+
+.send-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--discord-blue);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.send-button:hover:not(:disabled) {
+  background-color: #677bc4; /* Um tom mais claro de azul */
+}
+
+.send-button:disabled {
+  background-color: var(--discord-light-gray);
+  color: var(--discord-text-secondary);
+  cursor: not-allowed;
+}

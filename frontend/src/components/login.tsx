@@ -55,7 +55,7 @@ const Login: React.FC = () => {
         localStorage.setItem("refreshToken", refreshToken);
 
         console.log("✅ Login bem-sucedido!");
-        navigate("/chat");
+        navigate("/chatRoom");
       } else {
         alert(data.message || "Credenciais inválidas");
       }

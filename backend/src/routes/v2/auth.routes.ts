@@ -2,20 +2,20 @@ import { Router } from 'express';
 import { AuthController } from '../../controllers/auth.controller';
 import { validate } from '../../middlewares/validate.middleware';
 import { authMiddleware } from '../../middlewares/auth.middleware';
-import { registerSchema, loginSchema, refreshTokenSchema } from '../../utils/validation.schemas';
+import { registerSchema, loginSchema, refreshTokenSchema, updateUserSchema, deleteUserSchema } from '../../utils/validation.schemas';
 
 const router = Router();
 
-// Rotas públicas
+// CRUD de usuários
 router.post('/register', validate(registerSchema), AuthController.register);
-router.post('/login', validate(loginSchema), AuthController.login);
-router.post('/refresh', validate(refreshTokenSchema), AuthController.refresh);
-
-// Consultas (públicas ou administrativas)
 router.get('/users', AuthController.getAll);
 router.get('/getByName', AuthController.getByName);
+router.put('/users/:id', authMiddleware, validate(updateUserSchema), AuthController.update);
+router.delete('/users/:id', authMiddleware, validate(deleteUserSchema), AuthController.delete);
 
-// Rotas protegidas
+// Rotas de autenticação
+router.post('/login', validate(loginSchema), AuthController.login);
+router.post('/refresh', validate(refreshTokenSchema), AuthController.refresh);
 router.post('/logout', authMiddleware, validate(refreshTokenSchema), AuthController.logout);
 router.get('/me', authMiddleware, AuthController.me);
 
