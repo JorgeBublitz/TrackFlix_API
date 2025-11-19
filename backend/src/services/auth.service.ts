@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { HashUtil } from '../utils/hash.util';
 import { JwtUtil } from '../utils/jwt.util';
 import { TokenPair } from '../types/jwt.types';
-import { RegisterInput, LoginInput } from '../utils/validation.schemas';
+import { RegisterInput, LoginInput } from '../utils/zod/validation.schemas';
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ export class AuthService {
     await prisma.user.create({
       data: {
         name: data.name,
+        nickname: data.nickname,
         email: data.email,
         password: hashedPassword,
       },
@@ -45,6 +46,18 @@ export class AuthService {
     });
   }
 
+  static async getByNickname(nickname: string) {
+    return prisma.user.findMany({
+      where: {
+        nickname: {
+          contains: nickname,
+          mode: 'insensitive',
+        },
+      },
+    });
+  }
+
+  
   // 🟦 UPDATE — Atualizar dados de um usuário
   static async update(userId: string, data: Partial<RegisterInput>): Promise<void> {
     await prisma.user.update({

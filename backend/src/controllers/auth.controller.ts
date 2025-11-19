@@ -4,7 +4,7 @@ import {
   RegisterInput,
   LoginInput,
   RefreshTokenInput,
-} from '../utils/validation.schemas';
+} from '../utils/zod/validation.schemas';
 
 export class AuthController {
   /**
@@ -32,6 +32,24 @@ export class AuthController {
       }
 
       const users = await AuthService.getByName(name);
+      return res.json(users);
+    } catch (err: any) {
+      return res.status(500).json({ message: err.message });
+    }
+  }
+
+  /**
+   * GET /users?nickname=xxx
+   * Busca usuários pelo nickname
+   */
+  static async getByNickname(req: Request, res: Response) {
+    try {
+      const { nickname } = req.query;
+      if (!nickname || typeof nickname !== 'string') {
+        return res.status(400).json({ message: 'Nickname é obrigatório' });
+      }
+
+      const users = await AuthService.getByNickname(nickname);
       return res.json(users);
     } catch (err: any) {
       return res.status(500).json({ message: err.message });
