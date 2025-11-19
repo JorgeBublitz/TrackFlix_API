@@ -22,7 +22,6 @@ export class AuthService {
     await prisma.user.create({
       data: {
         name: data.name,
-        nickname: data.nickname,
         email: data.email,
         password: hashedPassword,
       },
@@ -46,18 +45,6 @@ export class AuthService {
     });
   }
 
-  static async getByNickname(nickname: string) {
-    return prisma.user.findMany({
-      where: {
-        nickname: {
-          contains: nickname,
-          mode: 'insensitive',
-        },
-      },
-    });
-  }
-
-  
   // 🟦 UPDATE — Atualizar dados de um usuário
   static async update(userId: string, data: Partial<RegisterInput>): Promise<void> {
     await prisma.user.update({

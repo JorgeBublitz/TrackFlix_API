@@ -10,7 +10,6 @@ const router = Router();
 router.post('/register', validate(registerSchema), AuthController.register);
 router.get('/users', AuthController.getAll);
 router.get('/getByName', AuthController.getByName);
-router.get('/getByNickname', AuthController.getByNickname);
 // Rotas de autenticação protegidas para atualização e deleção de usuário
 router.put('/users/:id', authMiddleware, validate(updateUserSchema), AuthController.update);
 router.delete('/users/:id', authMiddleware, validate(deleteUserSchema), AuthController.delete);

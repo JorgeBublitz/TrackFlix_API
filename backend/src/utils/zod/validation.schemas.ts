@@ -18,9 +18,6 @@ export const registerSchema = z.object({
   name: z
     .string({ message: 'Nome é obrigatório' })
     .min(2, 'Nome deve ter no mínimo 2 caracteres'),
-  nickname: z
-    .string({ message: 'Nickname é obrigatório' })
-    .min(6, 'Nickname deve ter no mínimo 6 caracteres'),
 });
 
 /**

@@ -38,7 +38,7 @@ const SignUp: React.FC = () => {
       const res = await fetch(`${API_URL}/api/auth/v2/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, nickname: name}),
       });
       const data = await res.json();
 
