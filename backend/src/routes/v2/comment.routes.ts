@@ -10,5 +10,9 @@ router.post('/comments', authMiddleware, CommentController.addComment);
 router.get('/comments/:crossoverId', CommentController.listComments);
 // Remove um comentário feito pelo usuário
 router.delete('/comments/:commentId', authMiddleware, CommentController.deleteComment);
+// Adiciona um like a um comentário
+router.post('/comments/:commentId/like', authMiddleware, CommentController.likeComment);
+// Remove um like de um comentário
+router.post('/comments/:commentId/unlike', authMiddleware, CommentController.unlikeComment);
 
 export default router;

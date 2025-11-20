@@ -54,6 +54,7 @@ model History {
 model Comment {
   id   String @id @default(uuid())
   user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes Int @default(0)
   userId      String
   crossoverId String // Id dos FIlmes/Series/etc comentados
   content     String

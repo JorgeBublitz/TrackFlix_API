@@ -55,4 +55,36 @@ export class CommentController {
             });
         }
     }
+    /**
+     *  POST /comments/:commentId/like
+     * Adiciona um like a um comentário
+     * */
+    static async likeComment(req: Request, res: Response) {
+        try {
+            const { commentId } = req.params;
+            await CommentService.likeComment(commentId);
+            return res.status(200).json({ message: 'Like adicionado ao comentário com sucesso' });
+        } catch (error: any) {
+            return res.status(500).json({
+                message: 'Erro ao adicionar like ao comentário',
+                error: error.message
+            });
+        }
+    }
+    /**
+     *  POST /comments/:commentId/unlike
+     * Remove um like de um comentário
+     * */
+    static async unlikeComment(req: Request, res: Response) {
+        try {
+            const { commentId } = req.params;
+            await CommentService.unlikeComment(commentId);
+            return res.status(200).json({ message: 'Like removido do comentário com sucesso' });
+        } catch (error: any) {
+            return res.status(500).json({
+                message: 'Erro ao remover like do comentário',
+                error: error.message
+            });
+        }
+    }
 }

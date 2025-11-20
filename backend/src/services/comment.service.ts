@@ -31,4 +31,26 @@ export class CommentService {
             },
         });
     }
+    // 🟩 LIKE — Adicionar um like a um comentário
+    static async likeComment(commentId: string): Promise<void> {
+        await prisma.comment.update({
+            where: { id: commentId },
+            data: {
+                likes: {
+                    increment: 1
+                }
+            }
+        });
+    }
+    // 🟩 UNLIKE — Remover um like de um comentário
+    static async unlikeComment(commentId: string): Promise<void> {
+        await prisma.comment.update({
+            where: { id: commentId },
+            data: {
+                likes: {
+                    decrement: 1
+                }
+            }
+        });
+    }
 }   
