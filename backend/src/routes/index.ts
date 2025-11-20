@@ -1,14 +1,16 @@
 import { Router } from 'express';
-import authRoutesV1 from './v1/auth.routes';
-import authRoutesV2 from './v2/auth.routes';
-import favoriteRoutesV1 from './v2/favorite.routes';
+import authRoutes from './v2/auth.routes';
+import favoriteRoutes from './v2/favorite.routes';
+import commentRoutes from './v2/comment.routes';
+import historyRoutes from './v2/history.routes';
+import watchListRoutes from './v2/watchList.routes';
 
 const router = Router();
 
-// Grupo de rotas de autenticação
-router.use('/auth/v1', authRoutesV1);
-
-router.use('/auth/v2', authRoutesV2);
-router.use('/favorites/v1', favoriteRoutesV1);
+router.use('/auth/v2', authRoutes);
+router.use('/comments/v2', commentRoutes);
+router.use('/favorites/v2', favoriteRoutes);
+router.use('/history/v2', historyRoutes);
+router.use('/watchList/v2', watchListRoutes);
 
 export default router;

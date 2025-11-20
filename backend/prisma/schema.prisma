@@ -9,15 +9,15 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  name          String
-  email         String         @unique
-  password      String
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
 
-  favorites     Favorite[]
-  watchlists    Watchlist[]
-  histories     History[]
-  comments      Comment[]
+  favorites  Favorite[]
+  watchlists Watchlist[]
+  histories  History[]
+  comments   Comment[]
 
   refreshTokens RefreshToken[]
   createdAt     DateTime       @default(now())
@@ -25,40 +25,39 @@ model User {
 }
 
 model Favorite {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  userId    String
-  crossoverId    String  // Id dos FIlmes/Series/etc favoritos
-  createdAt DateTime @default(now())
+  id   String @id @default(uuid())
+  user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userId      String
+  crossoverId String // Id dos FIlmes/Series/etc favoritos
+  createdAt   DateTime @default(now())
 }
 
 model Watchlist {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  userId    String
-  crossoverId    String  // Id dos FIlmes/Series/etc na watchlist
-  createdAt DateTime @default(now())
+  id   String @id @default(uuid())
+  user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userId      String
+  crossoverId String // Id dos FIlmes/Series/etc na watchlist
+  createdAt   DateTime @default(now())
 }
 
 model History {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  userId    String
-  crossoverId    String  // Id dos FIlmes/Series/etc pesquisados
-  createdAt DateTime @default(now())
+  id   String @id @default(uuid())
+  user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userId      String
+  crossoverId String // Id dos FIlmes/Series/etc pesquisados
+  createdAt   DateTime @default(now())
 }
 
 model Comment {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  userId    String
-  crossoverId    String  // Id dos FIlmes/Series/etc comentados
-  content   String
-  createdAt DateTime @default(now())
+  id   String @id @default(uuid())
+  user User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  crossoverId String // Id dos FIlmes/Series/etc comentados
+  content     String
+  createdAt   DateTime @default(now())
 }
 
 model RefreshToken {
