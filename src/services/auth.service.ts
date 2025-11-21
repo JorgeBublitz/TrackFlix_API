@@ -8,7 +8,6 @@ import { RegisterInput, LoginInput } from '../utils/zod/validation.schemas';
 
 dotenv.config();
 
-
 export class AuthService {
   // 🟩 CREATE — Registrar novo usuário
   static async register(data: RegisterInput): Promise<void> {
