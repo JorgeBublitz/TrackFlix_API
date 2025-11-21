@@ -2,10 +2,10 @@
   "name": "trackflix-api",
   "version": "1.0.0",
   "description": "API REST para gerenciar favoritos, watchlist, histórico, comentários e autenticação de usuários, consumindo dados externos de filmes e séries.",
-  "main": "dist/server.js",
+  "main": "src/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node src/server.js",
     "dev": "nodemon src/server.ts",
     "lint": "eslint . --ext .ts"
   },
