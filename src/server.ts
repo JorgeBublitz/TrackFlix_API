@@ -4,7 +4,7 @@ import { createServer } from 'http';
 import { env } from './config/env';
 import { JwtUtil } from './utils/jwt.util';
 
-const PORT = env.port || 3000;
+const PORT = env.port;
 
 const server = createServer(app);
 
