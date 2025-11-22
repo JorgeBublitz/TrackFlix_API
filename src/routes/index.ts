@@ -4,6 +4,7 @@ import favoriteRoutes from './v2/favorite.routes';
 import commentRoutes from './v2/comment.routes';
 import historyRoutes from './v2/history.routes';
 import watchListRoutes from './v2/watchList.routes';
+import friendsRoutes from './v2/friends.routes';
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.use('/comments/v2', commentRoutes);
 router.use('/favorites/v2', favoriteRoutes);
 router.use('/history/v2', historyRoutes);
 router.use('/watchList/v2', watchListRoutes);
+router.use('/friends/v2', friendsRoutes);
 
 export default router;
