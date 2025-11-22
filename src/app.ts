@@ -5,7 +5,16 @@ import routes from './routes';
 const app: Application = express();
 
 // Middlewares globais
-app.use(cors());
+app.get("/api/auth",
+  cors({
+    origin: "https://fhub.vercel.app",
+    credentials: true
+  }),
+  (req, res) => {
+    res.send("Rota protegida pelo CORS!");
+  }
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
