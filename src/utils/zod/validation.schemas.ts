@@ -60,6 +60,11 @@ export const updateUserSchema = z.object({
     .string()
     .min(2, 'Nome deve ter no mínimo 2 caracteres')
     .optional(),
+
+  bio: z
+    .string()
+    .max(160, 'Bio deve ter no máximo 160 caracteres')
+    .optional(),
 });
 
 /**
