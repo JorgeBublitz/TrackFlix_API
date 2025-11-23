@@ -39,6 +39,29 @@ export class CommentController {
         }
     }
     /**
+     * PUT /comments/:commentId
+     * Edita um comentário feito pelo usuário
+     * */
+
+    static async editComment(req: Request, res: Response) {
+        try {
+            const userId = req.user.userId;
+            const { commentId } = req.params;
+            const { content } = req.body;
+            if (!content) {
+                return res.status(400).json({ message: 'Content é obrigatório' });
+            }
+            await CommentService.editComment(commentId, userId, content);
+            return res.status(200).json({ message: 'Comentário editado com sucesso' });
+        } catch (error: any) {
+            return res.status(500).json({
+                message: 'Erro ao editar comentário',
+                error: error.message
+            });
+        }
+    }
+
+    /**
      * DELETE /comments/:commentId
      * Remove um comentário feito pelo usuário
      * */

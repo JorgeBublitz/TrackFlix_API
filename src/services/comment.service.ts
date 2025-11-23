@@ -31,6 +31,18 @@ export class CommentService {
             },
         });
     }
+
+    static async editComment(commentId: string, userId: string, content: string): Promise<void> {
+        await prisma.comment.updateMany({
+            where: {
+                id: commentId,
+                userId
+            },
+            data: {
+                content
+            }
+        });
+    }
     // 🟩 LIKE — Adicionar um like a um comentário
     static async likeComment(commentId: string): Promise<void> {
         await prisma.comment.update({
