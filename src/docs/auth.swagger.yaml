@@ -1,9 +1,8 @@
 paths:
-  /auth/v2/login:
+  /api/auth/v2/login:
     post:
       tags:
-        - Auth - Login e Registro
-        
+        - Auth - Login
       summary: Realiza login
       requestBody:
         required: true
@@ -59,3 +58,4 @@ paths:
                   message:
                     type: string
                     example: Erro interno do servidor
+  /api/auth/v2/register:
