@@ -10,6 +10,7 @@ export class WatchListService {
             },
         });
     }
+    
     // 🟩 REMOVE — Remover um item da watchlist
     static async removeFromWatchList(userId: string, crossoverId: string): Promise<void> {
         await prisma.watchlist.deleteMany({
@@ -19,6 +20,7 @@ export class WatchListService {
             },
         });
     }
+
     // 🟩 LIST — Listar itens da watchlist de um usuário
     static async listWatchList(userId: string) {
         return prisma.watchlist.findMany({

@@ -1,6 +1,8 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import routes from './routes';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swaggerConfig';
 
 const app: Application = express();
 
@@ -14,6 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Prefixo padrão da API
 app.use('/api', routes);
+
+// Rota da Documentação Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check (fora do prefixo)
 app.get('/', (req, res) => {
