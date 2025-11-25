@@ -3,7 +3,7 @@
 ## API REST para Gerenciamento de Conteúdo de Filmes e Séries
 
 [![Status do Deploy](https://img.shields.io/badge/Deploy-Online-brightgreen?style=for-the-badge)](https://trackflix-api-wlzi.onrender.com)
-[![Frontend](https://img.shields.io/badge/Frontend-Vercel-blue?style=for-the-badge)](https://framehub.vercel.app/)
+[![Frontend](https://img.shields.io/badge/Frontend-Vercel-blue?style=for-the-badge)](https://fhub.vercel.app/)
 [![Licença](https://img.shields.io/badge/Licen%C3%A7a-MIT-informational?style=for-the-badge)](LICENSE)
 
 A **TrackFlix API** é uma robusta API RESTful desenvolvida em Node.js e TypeScript, projetada para ser o *backend* de uma aplicação de gerenciamento de conteúdo de entretenimento. Ela permite que usuários criem e gerenciem suas listas pessoais de filmes e séries, como favoritos, *watchlist* e histórico, além de interagir com a comunidade através de comentários.
