@@ -2,6 +2,7 @@
   "name": "trackflix-api",
   "version": "1.0.0",
   "description": "API REST para gerenciar favoritos, watchlist, histórico, comentários e autenticação de usuários, consumindo dados externos de filmes e séries.",
+  "license": "MIT",
   "main": "src/server.js",
   "scripts": {
     "build": "tsc",
