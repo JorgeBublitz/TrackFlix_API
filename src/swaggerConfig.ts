@@ -5,15 +5,23 @@ const options: Options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Minha API Node + TS',
+            title: 'API de Autenticação, Usuários e Comentários', // Título atualizado
             version: '1.0.0',
-            description: 'Documentação da API com Autenticação JWT',
+            description: 'Documentação oficial da API. Contém fluxos de Autenticação (Login, Registro, Refresh), CRUD de Usuários e Gerenciamento de Comentários.', // Descrição atualizada
+            contact: {
+                name: 'Jorge Luis Heringer Bublitz',
+                email: 'bublitzjorge3@gmail.com',
+            },
         },
         servers: [
             {
-                url: 'https://trackflix-api-wlzi.onrender.com/',
-                description: 'Servidor Remoto',
+                url: 'http://localhost:3000/',
+                description: 'Servidor Local',
             },
+            {
+                url: 'https://fhub-api.vercel.app/',
+                description: 'Servidor de Produção',
+            }
         ],
         // CONFIGURAÇÃO DE AUTH AQUI
         components: {
@@ -34,7 +42,8 @@ const options: Options = {
     // IMPORTANTE: O caminho deve pegar seus arquivos de rota
     apis: [
         './src/routes/*.ts',
-        './src/docs/*.yaml'
+        './src/docs/*.yaml',
+        './src/docs/auth.swagger.yaml',
     ],
 };
 

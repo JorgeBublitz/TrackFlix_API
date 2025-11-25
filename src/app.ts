@@ -6,13 +6,13 @@ import { swaggerSpec } from './swaggerConfig';
 
 const app: Application = express();
 
-// Middlewares globais
-app.use(cors({
-  origin: "https://fhub.vercel.app",
-  credentials: true
-}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(cors({
+  origin: "https://fhub-api.vercel.app/",
+  credentials: false
+}));
 
 // Prefixo padrão da API
 app.use('/api', routes);

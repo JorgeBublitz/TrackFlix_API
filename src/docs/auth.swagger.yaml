@@ -1,26 +1,67 @@
+tags:
+  - name: Auth
+    description: Rotas de acesso, registro e controle de sessão
+  - name: Users
+    description: Manipulação de dados de usuários
+
 paths:
-  /api/auth/v2/login:
+  /api/auth/v2/register:
     post:
       tags:
-        - Auth - Login
-      summary: Realiza login
+        - Auth
+      summary: Registrar novo usuário
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - email
-                - password
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        201:
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        400:
+          description: Dados inválidos
+
+  /api/auth/v2/login:
+    post:
+      tags:
+        - Auth
+      summary: Autenticar usuário (Login)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         200:
-          description: Login com sucesso
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        401:
+          description: Credenciais incorretas
+
+  /api/auth/v2/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Renovar Token de Acesso
+      description: Troca um Refresh Token válido por um novo Access Token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        200:
+          description: Token renovado
           content:
             application/json:
               schema:
@@ -29,33 +70,127 @@ paths:
                   token:
                     type: string
         401:
-          description: Credenciais inválidas
+          description: Refresh token inválido ou expirado
+
+  /api/auth/v2/logout:
+    post:
+      tags:
+        - Auth
+      summary: Deslogar usuário
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        204:
+          description: Logout efetuado (Sem conteúdo)
+
+  /api/auth/v2/me:
+    get:
+      tags:
+        - Auth
+      summary: Perfil do usuário logado
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Dados do usuário
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Credenciais inválidas
+                $ref: "#/components/schemas/User"
+
+
+  /api/auth/v2/users:
+    get:
+      tags:
+        - Users
+      summary: Listar todos os usuários
+      # Nota: Se tiver middleware na rota get all, descomente abaixo
+      # security:
+      #   - bearerAuth: []
+      responses:
+        200:
+          description: Lista recuperada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /api/auth/v2/getByName:
+    get:
+      tags:
+        - Users
+      summary: Buscar usuário por nome
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: true
+          description: Nome para pesquisar
+      responses:
+        200:
+          description: Resultado da busca
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  # Rota combinada para ID (PUT e DELETE)
+  /api/auth/v2/users/{id}:
+    put:
+      tags:
+        - Users
+      summary: Atualizar dados de um usuário
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID do usuário a ser atualizado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        200:
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        403:
+          description: Proibido (Sem permissão)
+
+    delete:
+      tags:
+        - Users
+      summary: Remover um usuário
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID do usuário a ser removido
+      responses:
+        204:
+          description: Usuário deletado com sucesso
         404:
           description: Usuário não encontrado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Usuário não encontrado
-        500:
-          description: Erro interno do servidor
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Erro interno do servidor
-  /api/auth/v2/register:
