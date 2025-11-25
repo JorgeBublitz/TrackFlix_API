@@ -21,8 +21,8 @@ A API oferece um conjunto completo de funcionalidades para uma experiência de u
 | Cadastro e Login Seguro | Criação de contas e autenticação via **JWT (JSON Web Tokens)**. |
 | Refresh Tokens | Mecanismo de segurança para renovação de tokens de acesso sem a necessidade de novo login. |
 | Favoritos | Adicionar e remover filmes/séries da lista de favoritos. |
-| Watchlist | Gerenciar itens que o usuário planeja assistir. |
-| Histórico | Registrar o que o usuário já assistiu. |
+| Watchlist | Gerenciar itens que o usuário já assistiu. |
+| Histórico | Registrar o que o usuário já pesquisou. |
 | Comentários | Postar, editar e excluir comentários em filmes e séries. |
 | TMDB API | Busca e recuperação de dados detalhados de filmes e séries em tempo real. |
 | Swagger UI | Documentação interativa e completa dos endpoints da API. |
