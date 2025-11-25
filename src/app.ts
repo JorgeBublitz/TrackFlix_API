@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
   origin: "https://fhub-api.vercel.app/",
-  credentials: false
+  credentials: true
 }));
 
 // Prefixo padrão da API
