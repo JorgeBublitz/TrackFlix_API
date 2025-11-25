@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: "https://fhub-api.vercel.app/",
+  origin: "https://fhub.vercel.app",
   credentials: true
 }));
 
