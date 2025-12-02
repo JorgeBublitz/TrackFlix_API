@@ -11,6 +11,6 @@ router.delete('/watchlist', authMiddleware, WatchListController.removeFromWatchL
 // Lista os itens da watchlist
 router.get('/watchlist', authMiddleware, WatchListController.listWatchList);
 // Lista os itens públicos da watchlist de um usuário
-router.get('/publicWatchlist', WatchListController.listWatchList);
+router.get('/publicWatchlist', WatchListController.listPublicWatchList);
 
 export default router;

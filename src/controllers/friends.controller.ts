@@ -43,4 +43,19 @@ export class FriendsController {
             res.status(500).send({ error: 'Falha ao listar amigos' });
         }
     }
+
+    static async listPublicFriends(req: Request, res: Response) {
+        try {
+            const userId = req.query.userId as string; 
+            
+            if (!userId) {
+                return res.status(400).send({ error: 'UserId é obrigatório' });
+            }
+
+            const friends = await FriendsService.listFriends(userId);
+            res.status(200).send(friends);
+        } catch (error) {
+            res.status(500).send({ error: 'Falha ao listar amigos públicos' });
+        }
+    }
 }

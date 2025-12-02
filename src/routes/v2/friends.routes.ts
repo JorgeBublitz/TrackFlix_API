@@ -11,6 +11,6 @@ router.delete('/friends/:friendId', authMiddleware, FriendsController.removeFrie
 // Lista os amigos do usuário
 router.get('/friends', authMiddleware, FriendsController.listFriends);
 // Lista os amigos públicos de um usuário
-router.get('/publicFriends', FriendsController.listFriends);
+router.get('/publicFriends', FriendsController.listPublicFriends);
 
 export default router;

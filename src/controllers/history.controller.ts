@@ -54,4 +54,19 @@ export class HistoryController {
             });
         }
     }
+
+    static async listPublicHistory(req: Request, res: Response) {
+        try {
+            const userId = req.query.userId as string;
+            
+            if (!userId) {
+                return res.status(400).send({ error: 'UserId é obrigatório' });
+            }
+
+            const history = await HistoryService.listHistory(userId);
+            res.status(200).send(history);
+        } catch (error) {
+            res.status(500).send({ error: 'Falha ao listar histórico público' });
+        }
+    }
 }

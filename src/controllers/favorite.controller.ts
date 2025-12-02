@@ -65,4 +65,20 @@ export class FavoriteController {
             });
         }
     }
+
+    static async listPublicFavorites(req: Request, res: Response) {
+        try {
+            const userId = req.query.userId as string;
+            
+            if (!userId) {
+                return res.status(400).send({ error: 'UserId é obrigatório' });
+            }
+
+            // Reutiliza o serviço existente passando o ID da URL
+            const favorites = await FavoriteService.listFavorites(userId);
+            res.status(200).send(favorites);
+        } catch (error) {
+            res.status(500).send({ error: 'Falha ao listar favoritos públicos' });
+        }
+    }
 }

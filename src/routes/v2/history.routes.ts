@@ -11,6 +11,6 @@ router.get('/history', authMiddleware, HistoryController.listHistory);
 // Limpa o histórico do usuário
 router.delete('/history', authMiddleware, HistoryController.clearHistory);
 // Lista o histórico público de um usuário
-router.get('/publicHistory', HistoryController.listHistory);
+router.get('/publicHistory', HistoryController.listPublicHistory);
 
 export default router;
