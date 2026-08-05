@@ -1,6 +1,4 @@
-# 🎬 TrackFlix API
-
-> 🎓 **Projeto Acadêmico** — desenvolvido durante o curso de Ciência da Computação (UNIPE).
+# TrackFlix API
 
 ## API REST para Gerenciamento de Conteúdo de Filmes e Séries
 
