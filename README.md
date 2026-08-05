@@ -1,5 +1,7 @@
 # 🎬 TrackFlix API
 
+> 🎓 **Projeto Acadêmico** — desenvolvido durante o curso de Ciência da Computação (UNIPE).
+
 ## API REST para Gerenciamento de Conteúdo de Filmes e Séries
 
 [![Status do Deploy](https://img.shields.io/badge/Deploy-Online-brightgreen?style=for-the-badge)](https://trackflix-api-wlzi.onrender.com)
