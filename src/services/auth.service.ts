@@ -1,12 +1,10 @@
 import prisma from '../config/prisma';
-import dotenv from 'dotenv';
 
 import { HashUtil } from '../utils/hash.util';
 import { JwtUtil } from '../utils/jwt.util';
+import { AppError } from '../utils/app-error';
 import { TokenPair } from '../types/jwt.types';
 import { RegisterInput, LoginInput } from '../utils/zod/validation.schemas';
-
-dotenv.config();
 
 export class AuthService {
   // 🟩 CREATE — Registrar novo usuário
@@ -15,7 +13,7 @@ export class AuthService {
       where: { email: data.email },
     });
 
-    if (existingUser) throw new Error('Email já está em uso');
+    if (existingUser) throw new AppError('Email já está em uso', 409);
 
     const hashedPassword = await HashUtil.hashPassword(data.password);
 
@@ -28,12 +26,21 @@ export class AuthService {
     });
   }
 
-  // 🟨 READ — Buscar todos os usuários
+  // 🟨 READ — Buscar todos os usuários (sem senha)
   static async getAll() {
-    return prisma.user.findMany();
+    return prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  // 🟨 READ — Buscar usuários por nome
+  // 🟨 READ — Buscar usuários por nome (sem senha)
   static async getByName(name: string) {
     return prisma.user.findMany({
       where: {
@@ -42,19 +49,49 @@ export class AuthService {
           mode: 'insensitive',
         },
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        createdAt: true,
+      },
     });
   }
 
   // 🟦 UPDATE — Atualizar dados de um usuário
-  static async update(userId: string, data: Partial<RegisterInput>): Promise<void> {
+  static async update(
+    userId: string,
+    data: { name?: string; email?: string; password?: string; bio?: string }
+  ): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError('Usuário não encontrado', 404);
+
+    if (data.email && data.email !== user.email) {
+      const emailTaken = await prisma.user.findUnique({ where: { email: data.email } });
+      if (emailTaken) throw new AppError('Email já está em uso', 409);
+    }
+
+    const updateData: { name?: string; email?: string; password?: string; bio?: string } = {};
+
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.password !== undefined) {
+      updateData.password = await HashUtil.hashPassword(data.password);
+    }
+
     await prisma.user.update({
       where: { id: userId },
-      data,
+      data: updateData,
     });
   }
 
   // 🟥 DELETE — Remover usuário
   static async delete(userId: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError('Usuário não encontrado', 404);
+
     await prisma.user.delete({
       where: { id: userId },
     });
@@ -63,12 +100,12 @@ export class AuthService {
   // 🔑 LOGIN — Autenticação e geração de tokens
   static async login(data: LoginInput): Promise<TokenPair> {
     const user = await prisma.user.findUnique({ where: { email: data.email } });
-    if (!user) throw new Error('Email não cadastrado');
+    if (!user) throw new AppError('Email não cadastrado', 401);
 
     const isPasswordValid = await HashUtil.comparePassword(data.password, user.password);
-    if (!isPasswordValid) throw new Error('Senha incorreta');
+    if (!isPasswordValid) throw new AppError('Senha incorreta', 401);
 
-    const payload = { userId: user.id.toString(), email: user.email };
+    const payload = { userId: user.id, email: user.email };
 
     const accessToken = JwtUtil.generateAccessToken(payload);
     const refreshToken = JwtUtil.generateRefreshToken(payload);
@@ -91,28 +128,33 @@ export class AuthService {
   // ♻️ REFRESH — Renovar tokens
   static async refreshAccessToken(refreshToken: string): Promise<TokenPair> {
     const payload = JwtUtil.verifyRefreshToken(refreshToken);
-    const { exp, iat, ...cleanPayload } = payload as any;
 
     const storedToken = await prisma.refreshToken.findUnique({
       where: { token: refreshToken },
     });
 
-    if (!storedToken) throw new Error('Refresh token inválido');
+    if (!storedToken) throw new AppError('Refresh token inválido', 401);
     if (storedToken.expiresAt < new Date()) {
       await prisma.refreshToken.delete({ where: { id: storedToken.id } });
-      throw new Error('Refresh token expirado');
+      throw new AppError('Refresh token expirado', 401);
     }
 
-    // Remove o antigo e cria um novo
+    // Remove o antigo e cria um novo (rotaciona o refresh token)
     await prisma.refreshToken.delete({ where: { id: storedToken.id } });
 
-    const newAccessToken = JwtUtil.generateAccessToken(cleanPayload);
-    const newRefreshToken = JwtUtil.generateRefreshToken(cleanPayload);
+    const newAccessToken = JwtUtil.generateAccessToken({
+      userId: payload.userId,
+      email: payload.email,
+    });
+    const newRefreshToken = JwtUtil.generateRefreshToken({
+      userId: payload.userId,
+      email: payload.email,
+    });
 
     await prisma.refreshToken.create({
       data: {
         token: newRefreshToken,
-        userId: String(cleanPayload.userId),
+        userId: payload.userId,
         expiresAt: JwtUtil.getRefreshTokenExpirationDate(),
       },
     });

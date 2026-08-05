@@ -35,6 +35,9 @@ model Favorite {
   userId      String
   crossoverId String // Id dos FIlmes/Series/etc favoritos
   createdAt   DateTime @default(now())
+
+  @@unique([userId, crossoverId])
+  @@index([userId])
 }
 
 model Watchlist {
@@ -44,6 +47,9 @@ model Watchlist {
   userId      String
   crossoverId String // Id dos FIlmes/Series/etc na watchlist
   createdAt   DateTime @default(now())
+
+  @@unique([userId, crossoverId])
+  @@index([userId])
 }
 
 model History {
@@ -53,6 +59,9 @@ model History {
   userId      String
   crossoverId String // Id dos FIlmes/Series/etc pesquisados
   createdAt   DateTime @default(now())
+
+  @@unique([userId, crossoverId])
+  @@index([userId])
 }
 
 model Comment {
@@ -63,6 +72,9 @@ model Comment {
   crossoverId String // Id dos FIlmes/Series/etc comentados
   content     String
   createdAt   DateTime @default(now())
+
+  @@index([crossoverId])
+  @@index([userId])
 }
 
 model Friends {
@@ -75,6 +87,7 @@ model Friends {
   createdAt DateTime @default(now())
 
   @@unique([userId, friendId])
+  @@index([friendId])
 }
 
 model RefreshToken {
@@ -84,4 +97,6 @@ model RefreshToken {
   userId    String
   createdAt DateTime @default(now())
   expiresAt DateTime
+
+  @@index([userId])
 }

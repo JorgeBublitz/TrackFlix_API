@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import { JwtUtil } from '../utils/jwt.util';
 import { JwtPayload } from '../types/jwt.types';
 
@@ -16,19 +17,33 @@ declare global {
  * Espera o token no header Authorization no formato: "Bearer <token>"
  */
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).json({ error: 'Token não fornecido' });
+    return;
+  }
+
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) {
+    res.status(401).json({ error: 'Token mal formatado' });
+    return;
+  }
+
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) throw new Error('Token não fornecido');
-
-    const [scheme, token] = authHeader.split(' ');
-    if (scheme !== 'Bearer' || !token) throw new Error('Token mal formatado');
-
     const payload = JwtUtil.verifyAccessToken(token);
     req.user = payload;
-
     next();
-  } catch (error: any) {
-    res.status(401).json({ error: error.message || 'Token inválido ou expirado' });
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      res.status(401).json({ error: 'Token expirado' });
+      return;
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({ error: 'Token inválido' });
+      return;
+    }
+    // Erros inesperados (ex.: falha na validação) não devem parecer problema de auth
+    console.error('Erro interno na autenticação:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
-

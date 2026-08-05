@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { AppError } from '../utils/app-error';
 import {
   RegisterInput,
   LoginInput,
@@ -8,33 +9,33 @@ import {
 
 export class AuthController {
   /**
-   * GET /getAll
-   * Lista todos os usuários
+   * GET /users
+   * Lista todos os usuários (sem senha)
    */
   static async getAll(req: Request, res: Response) {
     try {
       const users = await AuthService.getAll();
-      return res.json(users);
-    } catch (err: any) {
-      return res.status(500).json({ message: err.message });
+      return res.json({ success: true, data: users });
+    } catch (error) {
+      return AuthController.handleError(res, error);
     }
   }
 
   /**
    * GET /users?name=xxx
-   * Busca usuários pelo nome
+   * Busca usuários pelo nome (sem senha)
    */
   static async getByName(req: Request, res: Response) {
     try {
       const { name } = req.query;
       if (!name || typeof name !== 'string') {
-        return res.status(400).json({ message: 'Nome é obrigatório' });
+        return res.status(400).json({ success: false, message: 'Nome é obrigatório' });
       }
 
       const users = await AuthService.getByName(name);
-      return res.json(users);
-    } catch (err: any) {
-      return res.status(500).json({ message: err.message });
+      return res.json({ success: true, data: users });
+    } catch (error) {
+      return AuthController.handleError(res, error);
     }
   }
 
@@ -52,19 +53,7 @@ export class AuthController {
         message: 'Usuário registrado com sucesso',
       });
     } catch (error) {
-      if (error instanceof Error) {
-        // Se o e-mail já existir, retorna 409 (Conflict)
-        const status = error.message.includes('já existe') ? 409 : 400;
-        return res.status(status).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor',
-      });
+      return AuthController.handleError(res, error);
     }
   }
 
@@ -82,17 +71,7 @@ export class AuthController {
         data: tokens,
       });
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(401).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor',
-      });
+      return AuthController.handleError(res, error);
     }
   }
 
@@ -102,8 +81,7 @@ export class AuthController {
    */
   static async refresh(req: Request, res: Response): Promise<Response> {
     try {
-      const refreshToken =
-        req.body.refreshToken || req.headers['x-refresh-token'];
+      const refreshToken = req.body.refreshToken || req.headers['x-refresh-token'];
 
       if (!refreshToken || typeof refreshToken !== 'string') {
         return res.status(400).json({
@@ -120,17 +98,7 @@ export class AuthController {
         data: tokens,
       });
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(403).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor',
-      });
+      return AuthController.handleError(res, error);
     }
   }
 
@@ -148,28 +116,26 @@ export class AuthController {
         message: 'Logout realizado com sucesso',
       });
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(400).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor',
-      });
+      return AuthController.handleError(res, error);
     }
   }
 
   /**
- * PUT /users/:id
- * Atualiza um usuário existente
- */
+   * PUT /users/:id
+   * Atualiza um usuário existente
+   */
   static async update(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const data = req.body;
+
+      // Impede que um usuário altere dados de outro
+      if (req.user && req.user.userId !== id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não tem permissão para alterar este usuário',
+        });
+      }
 
       await AuthService.update(id, data);
 
@@ -178,17 +144,7 @@ export class AuthController {
         message: 'Usuário atualizado com sucesso',
       });
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(400).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor',
-      });
+      return AuthController.handleError(res, error);
     }
   }
 
@@ -199,6 +155,14 @@ export class AuthController {
   static async delete(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
+
+      if (req.user && req.user.userId !== id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Você não tem permissão para remover este usuário',
+        });
+      }
+
       await AuthService.delete(id);
 
       return res.status(200).json({
@@ -206,17 +170,7 @@ export class AuthController {
         message: 'Usuário removido com sucesso',
       });
     } catch (error) {
-      if (error instanceof Error) {
-        return res.status(400).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor',
-      });
+      return AuthController.handleError(res, error);
     }
   }
 
@@ -242,10 +196,25 @@ export class AuthController {
         },
       });
     } catch (error) {
-      return res.status(500).json({
+      return AuthController.handleError(res, error);
+    }
+  }
+
+  /**
+   * Centraliza o tratamento de erros dos controllers
+   */
+  private static handleError(res: Response, error: unknown): Response {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({
         success: false,
-        message: 'Erro interno do servidor',
+        message: error.message,
       });
     }
+
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+    });
   }
 }

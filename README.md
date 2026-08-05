@@ -44,7 +44,9 @@ Este projeto foi construído com um *stack* moderno e eficiente, garantindo perf
 ### Segurança e Autenticação
 
 *   **JWT (JSON Web Tokens)**: Para autenticação e autorização.
-*   **Bcrypt/Bcryptjs**: Para *hashing* seguro de senhas.
+*   **Bcryptjs**: Para *hashing* seguro de senhas.
+*   **Helmet**: Para proteção contra vulnerabilidades comuns de HTTP.
+*   **Express Rate Limit**: Para proteção contra abuso e ataques de força bruta.
 
 ### Banco de Dados
 
@@ -104,23 +106,32 @@ npm install
 
 ### 3. Configurar Variáveis de Ambiente
 
-Crie um arquivo chamado `.env` na raiz do projeto e preencha com suas variáveis de ambiente.
+Crie um arquivo chamado `.env` na raiz do projeto, copiando o modelo disponível:
 
-**Exemplo de `.env`:**
+```bash
+cp .env.example .env
+```
+
+Preencha os valores conforme seu ambiente (segredos JWT, banco de dados, CORS):
 
 ```
-# Configuração do Banco de Dados (Prisma)
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME?schema=public"
+# Servidor
+PORT=3000
+NODE_ENV=development
+
+# CORS — separe múltiplas origens com vírgula (usado em produção)
+CORS_ORIGIN=https://fhub.vercel.app
 
 # Chaves Secretas para JWT
 JWT_ACCESS_SECRET="your_access_secret_key"
 JWT_REFRESH_SECRET="your_refresh_secret_key"
 
-JWT_ACCESS_EXPIRATION="1m"
-JWT_REFRESH_EXPIRATION="1d"
+JWT_ACCESS_EXPIRATION="15m"
+JWT_REFRESH_EXPIRATION="7d"
 
-# Porta da Aplicação
-PORT=3000
+# Configuração do Banco de Dados (Prisma)
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME?schema=public"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME?schema=public"
 ```
 
 ### 4. Configurar o Banco de Dados

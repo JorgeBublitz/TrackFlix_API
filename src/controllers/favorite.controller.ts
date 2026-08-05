@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { FavoriteService } from '../services/favorite.service';
+import { AppError } from '../utils/app-error';
 
 export class FavoriteController {
     /**
@@ -8,77 +9,79 @@ export class FavoriteController {
      */
     static async addFavorite(req: Request, res: Response) {
         try {
-            const userId = req.user.userId; 
+            const userId = req.user!.userId;
             const { crossoverId } = req.body;
 
             if (!crossoverId) {
-                return res.status(400).json({ message: 'crossoverId é obrigatório' });
+                throw new AppError('crossoverId é obrigatório', 400);
             }
 
             await FavoriteService.addFavorite(userId, crossoverId);
 
-            return res.status(201).json({ message: 'Favorito adicionado com sucesso' });
-        } catch (error: any) {
-            return res.status(500).json({
-                message: 'Erro ao adicionar favorito',
-                error: error.message
-            });
+            return res.status(201).json({ success: true, message: 'Favorito adicionado com sucesso' });
+        } catch (error) {
+            return FavoriteController.handleError(res, error);
         }
     }
 
     /**
      * DELETE /favorites
      * Remove um favorito do usuário
-     * */
+     */
     static async removeFavorite(req: Request, res: Response) {
         try {
-            const userId = req.user.userId; 
+            const userId = req.user!.userId;
             const { crossoverId } = req.body;
 
             if (!crossoverId) {
-                return res.status(400).json({ message: 'crossoverId é obrigatório' });
+                throw new AppError('crossoverId é obrigatório', 400);
             }
             await FavoriteService.removeFavorite(userId, crossoverId);
 
-            return res.status(200).json({ message: 'Favorito removido com sucesso' });
-        } catch (error: any) {
-            return res.status(500).json({
-                message: 'Erro ao remover favorito',
-                error: error.message
-            });
+            return res.status(200).json({ success: true, message: 'Favorito removido com sucesso' });
+        } catch (error) {
+            return FavoriteController.handleError(res, error);
         }
     }
 
     /**
      * GET /favorites
      * Lista os favoritos do usuário
-     * */
+     */
     static async listFavorites(req: Request, res: Response) {
         try {
-            const userId = req.user.userId; 
+            const userId = req.user!.userId;
             const favorites = await FavoriteService.listFavorites(userId);
-            return res.status(200).json({ favorites });
-        } catch (error: any) {
-            return res.status(500).json({
-                message: 'Erro ao listar favoritos',
-                error: error.message
-            });
+            return res.status(200).json({ success: true, data: favorites });
+        } catch (error) {
+            return FavoriteController.handleError(res, error);
         }
     }
 
+    /**
+     * GET /favorites/public?userId=xxx
+     * Lista favoritos públicos de um usuário
+     */
     static async listPublicFavorites(req: Request, res: Response) {
         try {
             const userId = req.query.userId as string;
-            
+
             if (!userId) {
-                return res.status(400).send({ error: 'UserId é obrigatório' });
+                throw new AppError('UserId é obrigatório', 400);
             }
 
-            // Reutiliza o serviço existente passando o ID da URL
             const favorites = await FavoriteService.listFavorites(userId);
-            res.status(200).send(favorites);
+            res.status(200).json({ success: true, data: favorites });
         } catch (error) {
-            res.status(500).send({ error: 'Falha ao listar favoritos públicos' });
+            return FavoriteController.handleError(res, error);
         }
+    }
+
+    private static handleError(res: Response, error: unknown): Response {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({ success: false, message: error.message });
+        }
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Erro interno do servidor' });
     }
 }
