@@ -60,18 +60,6 @@ Este projeto foi construído com um *stack* moderno e eficiente, garantindo perf
 
 ---
 
-## 🚀 Deploy e Acesso
-
-A API está atualmente em produção e pode ser acessada através dos seguintes links:
-
-| Serviço | Tipo | URL |
-| :--- | :--- | :--- |
-| **API (Backend)** | Deploy Principal | [https://trackflix-api-wlzi.onrender.com](https://trackflix-api-wlzi.onrender.com) |
-| **Documentação** | Swagger UI | [https://trackflix-api-wlzi.onrender.com/api-docs](https://trackflix-api-wlzi.onrender.com/api-docs) |
-| **Frontend** | Aplicação Cliente | [FrameHub: Onde todos os frames se encontram](https://framehub.vercel.app/) |
-
----
-
 ## ⚙️ Instalação e Configuração Local
 
 Para rodar a **TrackFlix API** em sua máquina local, siga os passos abaixo:
