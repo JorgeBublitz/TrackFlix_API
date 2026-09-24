@@ -1,185 +1,123 @@
 # TrackFlix API
 
-## API REST para Gerenciamento de Conteúdo de Filmes e Séries
+[![CI](https://github.com/JorgeBublitz/TrackFlix_API/actions/workflows/ci.yml/badge.svg)](https://github.com/JorgeBublitz/TrackFlix_API/actions/workflows/ci.yml)
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma-4169E1?logo=postgresql&logoColor=white)
+[![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-informational)](LICENSE)
 
-[![Status do Deploy](https://img.shields.io/badge/Deploy-Online-brightgreen?style=for-the-badge)](https://trackflix-api-wlzi.onrender.com)
-[![Frontend](https://img.shields.io/badge/Frontend-Vercel-blue?style=for-the-badge)](https://fhub.vercel.app/)
-[![Licença](https://img.shields.io/badge/Licen%C3%A7a-MIT-informational?style=for-the-badge)](LICENSE)
+API REST que funciona como backend de um app de filmes e séries. Cada usuário mantém suas listas pessoais (favoritos, watchlist e histórico), comenta em títulos e adiciona amigos.
 
-A **TrackFlix API** é uma robusta API RESTful desenvolvida em Node.js e TypeScript, projetada para ser o *backend* de uma aplicação de gerenciamento de conteúdo de entretenimento. Ela permite que usuários criem e gerenciem suas listas pessoais de filmes e séries, como favoritos, *watchlist* e histórico, além de interagir com a comunidade através de comentários.
+Os dados dos filmes vêm da [TMDB](https://www.themoviedb.org/): o frontend consulta a TMDB e a API guarda apenas o ID de cada título (`crossoverId`) junto com os dados do usuário.
 
-O projeto se integra perfeitamente com a **The Movie Database (TMDB) API** para obter dados atualizados de filmes e séries, enquanto gerencia os dados específicos do usuário (autenticação e listas) em um banco de dados próprio.
+## Destaques técnicos
 
----
+- **Autenticação JWT com refresh token rotativo**: cada renovação invalida o token anterior, e o logout revoga a sessão.
+- **Validação com Zod** em body e parâmetros de rota, com mensagens de erro por campo.
+- **Erros tratados de forma centralizada**: registro duplicado retorna `409`, referência inexistente retorna `404`, JSON malformado retorna `400`. Nenhum desses casos vira `500`.
+- **Segurança**: senhas com bcrypt, Helmet, CORS configurável, rate limiting e login com mensagem única para não revelar quais emails estão cadastrados.
+- **31 endpoints versionados (`/v2`)** documentados no Swagger.
+- **Testes de integração** com Vitest e Supertest contra um PostgreSQL real, rodando no **GitHub Actions** a cada push. O CI também confere se as migrations batem com o schema do Prisma.
 
-## ✨ Funcionalidades Principais
+## Deploy
 
-A API oferece um conjunto completo de funcionalidades para uma experiência de usuário rica e segura:
+A API já foi publicada na **Render**, com o banco PostgreSQL no **Supabase**, e consumida por um frontend na **Vercel**. Hoje esse deploy está fora do ar. Para testar, rode localmente seguindo os passos abaixo.
 
-| Funcionalidade | Detalhes |
-| :--- | :--- |
-| Cadastro e Login Seguro | Criação de contas e autenticação via **JWT (JSON Web Tokens)**. |
-| Refresh Tokens | Mecanismo de segurança para renovação de tokens de acesso sem a necessidade de novo login. |
-| Favoritos | Adicionar e remover filmes/séries da lista de favoritos. |
-| Watchlist | Gerenciar itens que o usuário já assistiu. |
-| Histórico | Registrar o que o usuário já pesquisou. |
-| Comentários | Postar, editar e excluir comentários em filmes e séries. |
-| TMDB API | Busca e recuperação de dados detalhados de filmes e séries em tempo real. |
-| Swagger UI | Documentação interativa e completa dos endpoints da API. |
+## Stack
 
----
+| Camada | Tecnologias |
+| --- | --- |
+| Runtime e linguagem | Node.js, TypeScript |
+| Framework | Express 5 |
+| Banco de dados | PostgreSQL com Prisma ORM |
+| Validação | Zod |
+| Segurança | JWT, bcryptjs, Helmet, express-rate-limit, CORS |
+| Documentação | Swagger (OpenAPI 3) |
+| Qualidade | Vitest, Supertest, ESLint, GitHub Actions |
 
-## 🛠️ Tecnologias Utilizadas
+## Arquitetura
 
-Este projeto foi construído com um *stack* moderno e eficiente, garantindo performance e manutenibilidade:
-
-### Backend
-
-*   **Node.js**: Ambiente de execução JavaScript.
-*   **TypeScript**: Linguagem de programação para tipagem estática.
-*   **Express**: Framework web minimalista e flexível para Node.js.
-*   **Prisma**: ORM (Object-Relational Mapper) de última geração para acesso ao banco de dados.
-*   **Zod**: Biblioteca de validação de schemas para garantir a integridade dos dados.
-
-### Segurança e Autenticação
-
-*   **JWT (JSON Web Tokens)**: Para autenticação e autorização.
-*   **Bcryptjs**: Para *hashing* seguro de senhas.
-*   **Helmet**: Para proteção contra vulnerabilidades comuns de HTTP.
-*   **Express Rate Limit**: Para proteção contra abuso e ataques de força bruta.
-
-### Banco de Dados
-
-*   **PostgreSQL**: Banco de dados relacional robusto (hospedado no Supabase).
-
-### Ferramentas de Desenvolvimento
-
-*   **Nodemon**: Para desenvolvimento com *hot-reload*.
-*   **ESLint & Prettier**: Para padronização e qualidade de código.
-*   **Swagger-jsdoc & Swagger-ui-express**: Para documentação automática e interativa da API.
-
----
-
-## ⚙️ Instalação e Configuração Local
-
-Para rodar a **TrackFlix API** em sua máquina local, siga os passos abaixo:
-
-### Pré-requisitos
-
-Certifique-se de ter instalado em seu ambiente:
-
-*   [Node.js](https://nodejs.org/en/) (versão LTS recomendada)
-*   [npm](https://www.npmjs.com/) ou [Yarn](https://yarnpkg.com/)
-*   [PostgreSQL](https://www.postgresql.org/) (ou acesso a um banco de dados PostgreSQL remoto)
-
-### 1. Clonar o Repositório
-
-```bash
-# Clone o repositório
-git clone <URL_DO_SEU_REPOSITORIO>
-
-# Entre no diretório do projeto
-cd trackflix-api
+```
+src/
+├── routes/v2/     # Definição das rotas e dos middlewares de cada grupo
+├── controllers/   # Entrada e saída HTTP
+├── services/      # Regras de negócio e acesso ao banco (Prisma)
+├── middlewares/   # Autenticação JWT e validação com Zod
+├── utils/         # JWT, hash, schemas Zod e tratamento de erros
+├── docs/          # Especificação OpenAPI (Swagger)
+├── app.ts         # Configuração do Express
+└── server.ts      # Inicialização e encerramento gracioso
+prisma/            # Schema e migrations
+tests/             # Testes de integração
 ```
 
-### 2. Instalar Dependências
+## Endpoints
+
+Todas as rotas ficam sob `/api`. As rotas marcadas com 🔒 exigem `Authorization: Bearer <accessToken>`.
+
+| Grupo | Rotas |
+| --- | --- |
+| **Auth** `/auth/v2` | `POST /register` · `POST /login` · `POST /refresh` · `POST /logout` 🔒 · `GET /me` 🔒 |
+| **Usuários** `/auth/v2` | `GET /users` · `GET /getByName?name=` · `PUT /users/:id` 🔒 · `DELETE /users/:id` 🔒 |
+| **Favoritos** `/favorites/v2` | `GET` · `POST` · `DELETE /favorite` 🔒 · `GET /publicFavorite?userId=` |
+| **Watchlist** `/watchList/v2` | `GET` · `POST` · `DELETE /watchlist` 🔒 · `GET /publicWatchlist?userId=` |
+| **Histórico** `/history/v2` | `GET` · `POST` · `DELETE /history` 🔒 · `GET /publicHistory?userId=` |
+| **Comentários** `/comments/v2` | `POST /comments` 🔒 · `GET /comments/:crossoverId` · `PUT` · `DELETE /comments/:commentId` 🔒 · `POST /comments/:commentId/like` 🔒 · `POST /comments/:commentId/unlike` 🔒 |
+| **Amigos** `/friends/v2` | `GET /friends` 🔒 · `POST` · `DELETE /friends/:friendId` 🔒 · `GET /publicFriends?userId=` |
+
+A documentação interativa, com os formatos de requisição e resposta, fica em `http://localhost:3000/api-docs`.
+
+Exemplo:
 
 ```bash
-# Usando npm
+# Login
+curl -X POST http://localhost:3000/api/auth/v2/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "jorge@email.com", "password": "Senha@123"}'
+
+# Adicionar "Clube da Luta" (ID 550 na TMDB) aos favoritos
+curl -X POST http://localhost:3000/api/favorites/v2/favorite \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"crossoverId": 550}'
+```
+
+## Como rodar localmente
+
+**Pré-requisitos:** Node.js 20 ou superior e um PostgreSQL acessível.
+
+```bash
+git clone https://github.com/JorgeBublitz/TrackFlix_API.git
+cd TrackFlix_API
 npm install
-
-# Ou usando yarn
-# yarn install
+cp .env.example .env        # preencha DATABASE_URL e os segredos JWT
+npx prisma migrate deploy   # cria as tabelas
+npm run dev                 # http://localhost:3000
 ```
 
-### 3. Configurar Variáveis de Ambiente
+### Variáveis de ambiente
 
-Crie um arquivo chamado `.env` na raiz do projeto, copiando o modelo disponível:
+| Variável | Descrição |
+| --- | --- |
+| `PORT` | Porta do servidor (padrão `3000`) |
+| `NODE_ENV` | `development`, `production` ou `test` |
+| `CORS_ORIGIN` | Origens permitidas em produção, separadas por vírgula |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | Segredos de assinatura dos tokens |
+| `JWT_ACCESS_EXPIRATION` / `JWT_REFRESH_EXPIRATION` | Validade dos tokens (padrão `15m` e `7d`) |
+| `DATABASE_URL` / `DIRECT_URL` | Conexão com o PostgreSQL |
 
-```bash
-cp .env.example .env
-```
+## Scripts
 
-Preencha os valores conforme seu ambiente (segredos JWT, banco de dados, CORS):
+| Comando | O que faz |
+| --- | --- |
+| `npm run dev` | Servidor com recarga automática |
+| `npm test` | Testes de integração (usa o banco do `DATABASE_URL`, que é limpo a cada teste) |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Checagem de tipos do TypeScript |
+| `npm run build` / `npm start` | Build de produção e execução |
 
-```
-# Servidor
-PORT=3000
-NODE_ENV=development
+> Use um banco separado para os testes: a suíte apaga os dados antes de cada caso.
 
-# CORS — separe múltiplas origens com vírgula (usado em produção)
-CORS_ORIGIN=https://fhub.vercel.app
+## Licença
 
-# Chaves Secretas para JWT
-JWT_ACCESS_SECRET="your_access_secret_key"
-JWT_REFRESH_SECRET="your_refresh_secret_key"
-
-JWT_ACCESS_EXPIRATION="15m"
-JWT_REFRESH_EXPIRATION="7d"
-
-# Configuração do Banco de Dados (Prisma)
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME?schema=public"
-DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME?schema=public"
-```
-
-### 4. Configurar o Banco de Dados
-
-Com o Prisma, você pode aplicar as migrações e gerar o cliente:
-
-```bash
-# Aplicar as migrações do banco de dados
-npx prisma migrate deploy
-
-# Gerar o cliente Prisma (se necessário)
-npx prisma generate
-```
-
-### 5. Rodar a Aplicação
-
-#### Modo Desenvolvimento
-
-Para rodar com *hot-reload* (recomendado para desenvolvimento):
-
-```bash
-npm run dev
-# A API estará disponível em http://localhost:3000
-```
----
-
-## 🗺️ Endpoints Principais da API
-
-A documentação completa e interativa de todos os endpoints está disponível no Swagger UI. Abaixo, listamos alguns dos principais grupos de rotas:
-
-| Rota Base | Método | Descrição | 
-| :--- | :--- | :--- |
-| `/auth/register` | `POST` | Cria uma nova conta de usuário. |
-| `/auth/login` | `POST` | Autentica o usuário e retorna `access_token` e `refresh_token`. |
-| `/auth/refresh` | `POST` | Renova o `access_token` usando o `refresh_token`. |
-| `/users/me` | `GET` | Retorna os dados do usuário autenticado. |
-| `/lists/favorites` | `POST` | Adiciona um item à lista de favoritos. |
-| `/lists/watchlist` | `GET` | Retorna a lista de *watchlist* do usuário. | 
-| `/content/:id/comments` | `POST` | Adiciona um novo comentário a um filme/série. |
-| `/tmdb/search` | `GET` | Busca filmes e séries na API externa (TMDB). |
-
-**Acesse a documentação interativa para detalhes de *payloads*, respostas e códigos de status:**
-[https://trackflix-api-wlzi.onrender.com/api-docs](https://trackflix-api-wlzi.onrender.com/api-docs)
-
----
-
-## 🤝 Contribuição
-
-Sinta-se à vontade para contribuir com o projeto!
-
-1.  Faça um *fork* do projeto.
-2.  Crie uma *branch* para sua funcionalidade (`git checkout -b feature/nova-funcionalidade`).
-3.  Faça o *commit* de suas alterações (`git commit -m 'feat: Adiciona nova funcionalidade X'`).
-4.  Faça o *push* para a *branch* (`git push origin feature/nova-funcionalidade`).
-5.  Abra um *Pull Request*.
-
----
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
+MIT. Veja [LICENSE](LICENSE).

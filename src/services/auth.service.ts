@@ -99,11 +99,12 @@ export class AuthService {
 
   // 🔑 LOGIN — Autenticação e geração de tokens
   static async login(data: LoginInput): Promise<TokenPair> {
+    // Mensagem única para email e senha: não revela quais emails estão cadastrados
     const user = await prisma.user.findUnique({ where: { email: data.email } });
-    if (!user) throw new AppError('Email não cadastrado', 401);
+    if (!user) throw new AppError('Email ou senha inválidos', 401);
 
     const isPasswordValid = await HashUtil.comparePassword(data.password, user.password);
-    if (!isPasswordValid) throw new AppError('Senha incorreta', 401);
+    if (!isPasswordValid) throw new AppError('Email ou senha inválidos', 401);
 
     const payload = { userId: user.id, email: user.email };
 
@@ -127,7 +128,12 @@ export class AuthService {
 
   // ♻️ REFRESH — Renovar tokens
   static async refreshAccessToken(refreshToken: string): Promise<TokenPair> {
-    const payload = JwtUtil.verifyRefreshToken(refreshToken);
+    let payload;
+    try {
+      payload = JwtUtil.verifyRefreshToken(refreshToken);
+    } catch {
+      throw new AppError('Refresh token inválido', 401);
+    }
 
     const storedToken = await prisma.refreshToken.findUnique({
       where: { token: refreshToken },

@@ -23,6 +23,7 @@ export class FriendsService {
     static async listFriends(userId: string): Promise<string[]> {
         const friends = await prisma.friends.findMany({
             where: { userId },
+            orderBy: { createdAt: 'desc' },
             select: { friendId: true },
         });
         return friends.map(friend => friend.friendId);

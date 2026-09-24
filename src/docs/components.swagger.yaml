@@ -1,0 +1,117 @@
+components:
+  schemas:
+    SuccessMessage:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+    ErrorMessage:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+    ValidationError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string, example: Erro de validação }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 2, example: Jorge }
+        email: { type: string, format: email, example: jorge@email.com }
+        password:
+          type: string
+          minLength: 8
+          description: Pelo menos 8 caracteres, um número, uma letra maiúscula e um caractere especial.
+          example: Senha@123
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: jorge@email.com }
+        password: { type: string, example: Senha@123 }
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+    UpdateUserRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 2 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        bio: { type: string, maxLength: 160 }
+    TokenPair:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+    AuthResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { $ref: "#/components/schemas/TokenPair" }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        bio: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+    CrossoverRequest:
+      type: object
+      required: [crossoverId]
+      properties:
+        crossoverId:
+          oneOf:
+            - type: string
+            - type: integer
+          description: ID do filme ou série na TMDB (número ou texto).
+          example: 550
+    ListItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        crossoverId: { type: string, example: "550" }
+        createdAt: { type: string, format: date-time }
+    CreateCommentRequest:
+      type: object
+      required: [crossoverId, content]
+      properties:
+        crossoverId:
+          oneOf:
+            - type: string
+            - type: integer
+          example: 550
+        content: { type: string, maxLength: 1000, example: Filme incrível! }
+    EditCommentRequest:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, maxLength: 1000 }
+    Comment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        crossoverId: { type: string }
+        content: { type: string }
+        likes: { type: integer }
+        createdAt: { type: string, format: date-time }
+        user:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }

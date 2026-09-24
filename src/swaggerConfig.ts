@@ -5,9 +5,9 @@ const options: Options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'API de Autenticação, Usuários e Comentários', // Título atualizado
-            version: '1.0.0',
-            description: 'Documentação oficial da API. Contém fluxos de Autenticação (Login, Registro, Refresh), CRUD de Usuários e Gerenciamento de Comentários.', // Descrição atualizada
+            title: 'TrackFlix API',
+            version: '1.2.0',
+            description: 'API REST para listas pessoais de filmes e séries (favoritos, watchlist e histórico), comentários e amigos, com autenticação JWT e refresh token.',
             contact: {
                 name: 'Jorge Luis Heringer Bublitz',
                 email: 'bublitzjorge3@gmail.com',
@@ -18,10 +18,6 @@ const options: Options = {
                 url: 'http://localhost:3000/',
                 description: 'Servidor Local',
             },
-            {
-                url: 'https://fhub-api.vercel.app/',
-                description: 'Servidor de Produção',
-            }
         ],
         // CONFIGURAÇÃO DE AUTH AQUI
         components: {
@@ -40,11 +36,7 @@ const options: Options = {
         ],
     },
     // IMPORTANTE: O caminho deve pegar seus arquivos de rota
-    apis: [
-        './src/routes/*.ts',
-        './src/docs/*.yaml',
-        './src/docs/auth.swagger.yaml',
-    ],
+    apis: ['./src/docs/*.yaml'],
 };
 
 export const swaggerSpec = swaggerJsDoc(options);

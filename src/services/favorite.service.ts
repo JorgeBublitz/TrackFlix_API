@@ -25,6 +25,7 @@ export class FavoriteService {
     static async listFavorites(userId: string): Promise<string[]> {
         const favorites = await prisma.favorite.findMany({
             where: { userId },
+            orderBy: { createdAt: 'desc' },
             select: { crossoverId: true },
         });
         return favorites.map(favorite => favorite.crossoverId);

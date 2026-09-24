@@ -2,7 +2,13 @@ import { Router } from 'express';
 import { AuthController } from '../../controllers/auth.controller';
 import { validate } from '../../middlewares/validate.middleware';
 import { authMiddleware } from '../../middlewares/auth.middleware';
-import { registerSchema, loginSchema, refreshTokenSchema, updateUserSchema, deleteUserSchema } from '../../utils/zod/validation.schemas';
+import {
+  registerSchema,
+  loginSchema,
+  refreshTokenSchema,
+  updateUserSchema,
+  userIdParamSchema,
+} from '../../utils/zod/validation.schemas';
 
 const router = Router();
 
@@ -10,16 +16,24 @@ const router = Router();
 router.post('/register', validate(registerSchema), AuthController.register);
 router.get('/users', AuthController.getAll);
 router.get('/getByName', AuthController.getByName);
-// Rotas de autenticação protegidas para atualização e deleção de usuário
-router.put('/users/:id', authMiddleware, validate(updateUserSchema), AuthController.update);
-router.delete('/users/:id', authMiddleware, validate(deleteUserSchema), AuthController.delete);
+router.put(
+  '/users/:id',
+  authMiddleware,
+  validate(userIdParamSchema, 'params'),
+  validate(updateUserSchema),
+  AuthController.update
+);
+router.delete(
+  '/users/:id',
+  authMiddleware,
+  validate(userIdParamSchema, 'params'),
+  AuthController.delete
+);
 
-//========================================================
-
-// Rotas de autenticação
+// Autenticação
 router.post('/login', validate(loginSchema), AuthController.login);
-router.post('/refresh', validate(refreshTokenSchema), AuthController.refresh);
+router.post('/refresh', AuthController.refresh);
 router.post('/logout', authMiddleware, validate(refreshTokenSchema), AuthController.logout);
 router.get('/me', authMiddleware, AuthController.me);
- 
+
 export default router;

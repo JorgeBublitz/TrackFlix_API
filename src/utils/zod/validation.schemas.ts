@@ -68,13 +68,44 @@ export const updateUserSchema = z.object({
 });
 
 /**
- * Schema de validação para deleção de usuário
+ * Schema de validação do parâmetro :id de usuário (PUT/DELETE /users/:id)
  */
-export const deleteUserSchema = z.object({
+export const userIdParamSchema = z.object({
   id: z
     .string({ message: 'ID do usuário é obrigatório' })
     .uuid('ID inválido'),
 });
+
+/**
+ * ID de um filme/série da TMDB. Aceita número ou string e normaliza para string.
+ */
+const crossoverId = z
+  .union([z.string().trim().min(1), z.number().int().positive()], {
+    message: 'crossoverId é obrigatório',
+  })
+  .transform((value) => String(value));
+
+/**
+ * Body com o ID de um filme/série (favoritos, watchlist e histórico)
+ */
+export const crossoverSchema = z.object({ crossoverId });
+
+/**
+ * Body para criar um comentário
+ */
+export const createCommentSchema = z.object({
+  crossoverId,
+  content: z
+    .string({ message: 'content é obrigatório' })
+    .trim()
+    .min(1, 'content é obrigatório')
+    .max(1000, 'O comentário deve ter no máximo 1000 caracteres'),
+});
+
+/**
+ * Body para editar um comentário
+ */
+export const editCommentSchema = createCommentSchema.pick({ content: true });
 
 /**
  * Tipos derivados
@@ -83,4 +114,5 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type DeleteUserInput = z.infer<typeof deleteUserSchema>;
+export type CrossoverInput = z.infer<typeof crossoverSchema>;
+export type CreateCommentInput = z.infer<typeof createCommentSchema>;

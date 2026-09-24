@@ -1,0 +1,253 @@
+tags:
+  - name: Favorites
+    description: Filmes e séries favoritos
+  - name: Watchlist
+    description: Filmes e séries para assistir depois
+  - name: History
+    description: Filmes e séries visualizados
+  - name: Comments
+    description: Comentários em filmes e séries
+  - name: Friends
+    description: Amizades entre usuários
+
+paths:
+  /api/favorites/v2/favorite:
+    get:
+      tags: [Favorites]
+      summary: Listar favoritos do usuário autenticado
+      responses:
+        200:
+          description: Lista de IDs da TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: string } }
+    post:
+      tags: [Favorites]
+      summary: Adicionar favorito
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CrossoverRequest" }
+      responses:
+        201: { description: Favorito adicionado }
+        400: { description: crossoverId inválido }
+        409: { description: Item já está nos favoritos }
+    delete:
+      tags: [Favorites]
+      summary: Remover favorito
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CrossoverRequest" }
+      responses:
+        200: { description: Favorito removido }
+
+  /api/favorites/v2/publicFavorite:
+    get:
+      tags: [Favorites]
+      summary: Favoritos públicos de um usuário
+      security: []
+      parameters:
+        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        200: { description: Lista de IDs da TMDB }
+        400: { description: userId não informado }
+
+  /api/watchList/v2/watchlist:
+    get:
+      tags: [Watchlist]
+      summary: Listar watchlist do usuário autenticado
+      responses:
+        200:
+          description: Itens da watchlist (mais recentes primeiro)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { $ref: "#/components/schemas/ListItem" } }
+    post:
+      tags: [Watchlist]
+      summary: Adicionar à watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CrossoverRequest" }
+      responses:
+        201: { description: Item adicionado }
+        409: { description: Item já está na watchlist }
+    delete:
+      tags: [Watchlist]
+      summary: Remover da watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CrossoverRequest" }
+      responses:
+        200: { description: Item removido }
+
+  /api/watchList/v2/publicWatchlist:
+    get:
+      tags: [Watchlist]
+      summary: Watchlist pública de um usuário
+      security: []
+      parameters:
+        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        200: { description: Itens da watchlist }
+
+  /api/history/v2/history:
+    get:
+      tags: [History]
+      summary: Listar histórico do usuário autenticado
+      responses:
+        200:
+          description: Itens do histórico (mais recentes primeiro)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { $ref: "#/components/schemas/ListItem" } }
+    post:
+      tags: [History]
+      summary: Registrar item no histórico
+      description: Se o item já estiver no histórico, ele volta para o topo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CrossoverRequest" }
+      responses:
+        201: { description: Item registrado }
+    delete:
+      tags: [History]
+      summary: Limpar histórico
+      responses:
+        200: { description: Histórico limpo }
+
+  /api/history/v2/publicHistory:
+    get:
+      tags: [History]
+      summary: Histórico público de um usuário
+      security: []
+      parameters:
+        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        200: { description: Itens do histórico }
+
+  /api/comments/v2/comments:
+    post:
+      tags: [Comments]
+      summary: Comentar em um filme/série
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCommentRequest" }
+      responses:
+        201: { description: Comentário criado }
+        400: { description: Dados inválidos }
+
+  /api/comments/v2/comments/{crossoverId}:
+    get:
+      tags: [Comments]
+      summary: Listar comentários de um filme/série
+      security: []
+      parameters:
+        - { in: path, name: crossoverId, required: true, schema: { type: string } }
+      responses:
+        200:
+          description: Comentários (mais recentes primeiro)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { $ref: "#/components/schemas/Comment" } }
+
+  /api/comments/v2/comments/{commentId}:
+    parameters:
+      - { in: path, name: commentId, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [Comments]
+      summary: Editar o próprio comentário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EditCommentRequest" }
+      responses:
+        200: { description: Comentário editado }
+        404: { description: Comentário não encontrado ou de outro usuário }
+    delete:
+      tags: [Comments]
+      summary: Remover o próprio comentário
+      responses:
+        200: { description: Comentário removido }
+        404: { description: Comentário não encontrado ou de outro usuário }
+
+  /api/comments/v2/comments/{commentId}/like:
+    post:
+      tags: [Comments]
+      summary: Curtir comentário
+      parameters:
+        - { in: path, name: commentId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        200: { description: Like adicionado }
+        404: { description: Comentário não encontrado }
+
+  /api/comments/v2/comments/{commentId}/unlike:
+    post:
+      tags: [Comments]
+      summary: Remover curtida (o contador nunca fica negativo)
+      parameters:
+        - { in: path, name: commentId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        200: { description: Like removido }
+        404: { description: Comentário não encontrado }
+
+  /api/friends/v2/friends:
+    get:
+      tags: [Friends]
+      summary: Listar amigos do usuário autenticado
+      responses:
+        200: { description: Lista de IDs dos amigos }
+
+  /api/friends/v2/friends/{friendId}:
+    parameters:
+      - { in: path, name: friendId, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Friends]
+      summary: Adicionar amigo
+      responses:
+        201: { description: Amigo adicionado }
+        400: { description: Tentativa de adicionar a si mesmo }
+        404: { description: Usuário não encontrado }
+        409: { description: Já são amigos }
+    delete:
+      tags: [Friends]
+      summary: Remover amigo
+      responses:
+        200: { description: Amigo removido }
+
+  /api/friends/v2/publicFriends:
+    get:
+      tags: [Friends]
+      summary: Amigos públicos de um usuário
+      security: []
+      parameters:
+        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        200: { description: Lista de IDs dos amigos }

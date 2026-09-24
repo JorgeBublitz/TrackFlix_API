@@ -24,9 +24,8 @@ export class WatchListService {
     // 🟩 LIST — Listar itens da watchlist de um usuário
     static async listWatchList(userId: string) {
         return prisma.watchlist.findMany({
-            where: {
-                userId
-            },
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
         });
     }
 }

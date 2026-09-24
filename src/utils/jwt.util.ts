@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env';
 import { JwtPayload } from '../types/jwt.types';
@@ -26,6 +27,8 @@ export class JwtUtil {
   static generateAccessToken(payload: JwtPayload): string {
     const options: SignOptions = {
       expiresIn: this.parseExpiration(env.jwtAccessExpiration),
+      // jwtid único: dois tokens gerados no mesmo segundo não ficam idênticos
+      jwtid: randomUUID(),
     };
     return jwt.sign(this.cleanPayload(payload), env.jwtAccessSecret, options);
   }
@@ -33,6 +36,8 @@ export class JwtUtil {
   static generateRefreshToken(payload: JwtPayload): string {
     const options: SignOptions = {
       expiresIn: this.parseExpiration(env.jwtRefreshExpiration),
+      // jwtid único: dois tokens gerados no mesmo segundo não ficam idênticos
+      jwtid: randomUUID(),
     };
     return jwt.sign(this.cleanPayload(payload), env.jwtRefreshSecret, options);
   }

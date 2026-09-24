@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { HistoryService } from '../services/history.service';
 import { AppError } from '../utils/app-error';
+import { handleError } from '../utils/handle-error';
 
 export class HistoryController {
     /**
@@ -13,7 +14,7 @@ export class HistoryController {
             const history = await HistoryService.listHistory(userId);
             return res.status(200).json({ success: true, data: history });
         } catch (error) {
-            return HistoryController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -31,7 +32,7 @@ export class HistoryController {
             await HistoryService.addToHistory(userId, crossoverId);
             return res.status(201).json({ success: true, message: 'Item adicionado ao histórico com sucesso' });
         } catch (error) {
-            return HistoryController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -45,7 +46,7 @@ export class HistoryController {
             await HistoryService.clearHistory(userId);
             return res.status(200).json({ success: true, message: 'Histórico limpo com sucesso' });
         } catch (error) {
-            return HistoryController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -64,15 +65,7 @@ export class HistoryController {
             const history = await HistoryService.listHistory(userId);
             res.status(200).json({ success: true, data: history });
         } catch (error) {
-            return HistoryController.handleError(res, error);
+            return handleError(res, error);
         }
-    }
-
-    private static handleError(res: Response, error: unknown): Response {
-        if (error instanceof AppError) {
-            return res.status(error.statusCode).json({ success: false, message: error.message });
-        }
-        console.error(error);
-        return res.status(500).json({ success: false, message: 'Erro interno do servidor' });
     }
 }

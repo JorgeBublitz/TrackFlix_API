@@ -1,196 +1,165 @@
 tags:
   - name: Auth
-    description: Rotas de acesso, registro e controle de sessão
+    description: Registro, login e controle de sessão
   - name: Users
-    description: Manipulação de dados de usuários
+    description: Consulta e manutenção de usuários
 
 paths:
   /api/auth/v2/register:
     post:
-      tags:
-        - Auth
+      tags: [Auth]
       summary: Registrar novo usuário
+      security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/RegisterRequest"
+            schema: { $ref: "#/components/schemas/RegisterRequest" }
       responses:
         201:
-          description: Usuário criado com sucesso
+          description: Usuário criado
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
         400:
           description: Dados inválidos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        409:
+          description: Email já está em uso
 
   /api/auth/v2/login:
     post:
-      tags:
-        - Auth
-      summary: Autenticar usuário (Login)
+      tags: [Auth]
+      summary: Login (retorna access token e refresh token)
+      security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/LoginRequest"
+            schema: { $ref: "#/components/schemas/LoginRequest" }
       responses:
         200:
-          description: Login realizado com sucesso
+          description: Login realizado
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
+              schema: { $ref: "#/components/schemas/AuthResponse" }
         401:
-          description: Credenciais incorretas
+          description: Email ou senha inválidos
 
   /api/auth/v2/refresh:
     post:
-      tags:
-        - Auth
-      summary: Renovar Token de Acesso
-      description: Troca um Refresh Token válido por um novo Access Token.
+      tags: [Auth]
+      summary: Renovar tokens
+      description: >
+        Troca um refresh token válido por um novo par de tokens. O refresh token
+        antigo é invalidado (rotação). Também aceita o token no header `x-refresh-token`.
+      security: []
       requestBody:
-        required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/RefreshTokenRequest"
+            schema: { $ref: "#/components/schemas/RefreshTokenRequest" }
       responses:
         200:
-          description: Token renovado
+          description: Tokens renovados
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        400:
+          description: Refresh token não enviado
         401:
           description: Refresh token inválido ou expirado
 
   /api/auth/v2/logout:
     post:
-      tags:
-        - Auth
-      summary: Deslogar usuário
-      security:
-        - bearerAuth: []
+      tags: [Auth]
+      summary: Logout (invalida o refresh token)
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/RefreshTokenRequest"
+            schema: { $ref: "#/components/schemas/RefreshTokenRequest" }
       responses:
-        204:
-          description: Logout efetuado (Sem conteúdo)
+        200:
+          description: Logout realizado
+        401:
+          description: Não autenticado
 
   /api/auth/v2/me:
     get:
-      tags:
-        - Auth
-      summary: Perfil do usuário logado
-      security:
-        - bearerAuth: []
+      tags: [Auth]
+      summary: Dados do usuário autenticado
       responses:
         200:
-          description: Dados do usuário
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-
+          description: Usuário autenticado (id e email)
+        401:
+          description: Não autenticado
 
   /api/auth/v2/users:
     get:
-      tags:
-        - Users
-      summary: Listar todos os usuários
-      # Nota: Se tiver middleware na rota get all, descomente abaixo
-      # security:
-      #   - bearerAuth: []
+      tags: [Users]
+      summary: Listar usuários
+      security: []
       responses:
         200:
-          description: Lista recuperada com sucesso
+          description: Lista de usuários (sem senha)
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/User" }
 
   /api/auth/v2/getByName:
     get:
-      tags:
-        - Users
-      summary: Buscar usuário por nome
+      tags: [Users]
+      summary: Buscar usuários pelo nome
+      security: []
       parameters:
         - in: query
           name: name
-          schema:
-            type: string
           required: true
-          description: Nome para pesquisar
+          schema: { type: string }
       responses:
         200:
-          description: Resultado da busca
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
+          description: Usuários encontrados
+        400:
+          description: Nome não informado
 
-  # Rota combinada para ID (PUT e DELETE)
   /api/auth/v2/users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
     put:
-      tags:
-        - Users
-      summary: Atualizar dados de um usuário
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: ID do usuário a ser atualizado
+      tags: [Users]
+      summary: Atualizar o próprio usuário
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateUserRequest"
+            schema: { $ref: "#/components/schemas/UpdateUserRequest" }
       responses:
         200:
           description: Usuário atualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
+        400:
+          description: Dados inválidos
         403:
-          description: Proibido (Sem permissão)
-
+          description: Tentativa de alterar outro usuário
+        409:
+          description: Email já está em uso
     delete:
-      tags:
-        - Users
-      summary: Remover um usuário
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: ID do usuário a ser removido
+      tags: [Users]
+      summary: Remover o próprio usuário
       responses:
-        204:
-          description: Usuário deletado com sucesso
+        200:
+          description: Usuário removido (favoritos, listas e comentários são removidos em cascata)
+        403:
+          description: Tentativa de remover outro usuário
         404:
           description: Usuário não encontrado

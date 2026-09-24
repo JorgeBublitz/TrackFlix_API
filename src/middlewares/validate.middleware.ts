@@ -1,11 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema, ZodError } from 'zod';
 
-export const validate = (schema: ZodSchema) => {
+type RequestPart = 'body' | 'params' | 'query';
+
+/**
+ * Valida uma parte da requisição (body por padrão) com um schema Zod.
+ */
+export const validate = (schema: ZodSchema, part: RequestPart = 'body') => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      const parsed = schema.parse(req.body);
-      req.body = parsed;
+      const parsed = schema.parse(req[part]);
+      if (part === 'body') req.body = parsed;
       return next();
     } catch (error) {
       if (error instanceof ZodError) {

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { AppError } from '../utils/app-error';
+import { handleError } from '../utils/handle-error';
 import {
   RegisterInput,
   LoginInput,
@@ -17,7 +17,7 @@ export class AuthController {
       const users = await AuthService.getAll();
       return res.json({ success: true, data: users });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -35,7 +35,7 @@ export class AuthController {
       const users = await AuthService.getByName(name);
       return res.json({ success: true, data: users });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -53,7 +53,7 @@ export class AuthController {
         message: 'Usuário registrado com sucesso',
       });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -71,7 +71,7 @@ export class AuthController {
         data: tokens,
       });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -81,7 +81,8 @@ export class AuthController {
    */
   static async refresh(req: Request, res: Response): Promise<Response> {
     try {
-      const refreshToken = req.body.refreshToken || req.headers['x-refresh-token'];
+      // Express 5 deixa req.body undefined quando a requisição não tem corpo
+      const refreshToken = req.body?.refreshToken || req.headers['x-refresh-token'];
 
       if (!refreshToken || typeof refreshToken !== 'string') {
         return res.status(400).json({
@@ -98,7 +99,7 @@ export class AuthController {
         data: tokens,
       });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -116,7 +117,7 @@ export class AuthController {
         message: 'Logout realizado com sucesso',
       });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -144,7 +145,7 @@ export class AuthController {
         message: 'Usuário atualizado com sucesso',
       });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -170,7 +171,7 @@ export class AuthController {
         message: 'Usuário removido com sucesso',
       });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
   }
 
@@ -196,25 +197,7 @@ export class AuthController {
         },
       });
     } catch (error) {
-      return AuthController.handleError(res, error);
+      return handleError(res, error);
     }
-  }
-
-  /**
-   * Centraliza o tratamento de erros dos controllers
-   */
-  private static handleError(res: Response, error: unknown): Response {
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Erro interno do servidor',
-    });
   }
 }

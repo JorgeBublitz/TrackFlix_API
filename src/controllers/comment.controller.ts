@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CommentService } from '../services/comment.service';
 import { AppError } from '../utils/app-error';
+import { handleError } from '../utils/handle-error';
 
 export class CommentController {
     /**
@@ -17,7 +18,7 @@ export class CommentController {
             await CommentService.addComment(userId, crossoverId, content);
             return res.status(201).json({ success: true, message: 'Comentário adicionado com sucesso' });
         } catch (error) {
-            return CommentController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -31,7 +32,7 @@ export class CommentController {
             const comments = await CommentService.listComments(crossoverId);
             return res.status(200).json({ success: true, data: comments });
         } catch (error) {
-            return CommentController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -50,7 +51,7 @@ export class CommentController {
             await CommentService.editComment(commentId, userId, content);
             return res.status(200).json({ success: true, message: 'Comentário editado com sucesso' });
         } catch (error) {
-            return CommentController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -65,7 +66,7 @@ export class CommentController {
             await CommentService.deleteComment(commentId, userId);
             return res.status(200).json({ success: true, message: 'Comentário removido com sucesso' });
         } catch (error) {
-            return CommentController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -79,7 +80,7 @@ export class CommentController {
             await CommentService.likeComment(commentId);
             return res.status(200).json({ success: true, message: 'Like adicionado ao comentário com sucesso' });
         } catch (error) {
-            return CommentController.handleError(res, error);
+            return handleError(res, error);
         }
     }
 
@@ -93,15 +94,7 @@ export class CommentController {
             await CommentService.unlikeComment(commentId);
             return res.status(200).json({ success: true, message: 'Like removido do comentário com sucesso' });
         } catch (error) {
-            return CommentController.handleError(res, error);
+            return handleError(res, error);
         }
-    }
-
-    private static handleError(res: Response, error: unknown): Response {
-        if (error instanceof AppError) {
-            return res.status(error.statusCode).json({ success: false, message: error.message });
-        }
-        console.error(error);
-        return res.status(500).json({ success: false, message: 'Erro interno do servidor' });
     }
 }
