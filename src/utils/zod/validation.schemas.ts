@@ -9,7 +9,7 @@ export const registerSchema = z.object({
     .email('Email inválido'),
 
   password: z
-    .string()
+    .string({ message: 'Senha é obrigatória' })
     .min(8, 'A senha deve ter no mínimo 8 caracteres')
     .regex(/\d/, 'A senha deve conter pelo menos um número')
     .regex(/[A-Z]/, 'A senha deve conter pelo menos uma letra maiúscula')
@@ -89,6 +89,30 @@ const crossoverId = z
  * Body com o ID de um filme/série (favoritos, watchlist e histórico)
  */
 export const crossoverSchema = z.object({ crossoverId });
+
+/**
+ * Schema de validação do parâmetro :crossoverId (GET /comments/:crossoverId)
+ * O crossoverId é o ID de um filme/série na TMDB, não um UUID interno.
+ */
+export const crossoverIdParamSchema = z.object({ crossoverId });
+
+/**
+ * Schema de validação do parâmetro :friendId (rotas de amizade)
+ */
+export const friendIdParamSchema = z.object({
+  friendId: z
+    .string({ message: 'ID do amigo é obrigatório' })
+    .uuid('ID de amigo inválido'),
+});
+
+/**
+ * Schema de validação do parâmetro :commentId (rotas de comentários)
+ */
+export const commentIdParamSchema = z.object({
+  commentId: z
+    .string({ message: 'ID do comentário é obrigatório' })
+    .uuid('ID de comentário inválido'),
+});
 
 /**
  * Body para criar um comentário

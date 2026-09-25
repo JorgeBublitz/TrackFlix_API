@@ -26,13 +26,12 @@ export class AuthService {
     });
   }
 
-  // 🟨 READ — Buscar todos os usuários (sem senha)
+  // 🟨 READ — Buscar todos os usuários (dados públicos, sem senha/email)
   static async getAll() {
     return prisma.user.findMany({
       select: {
         id: true,
         name: true,
-        email: true,
         bio: true,
         createdAt: true,
       },
@@ -40,7 +39,7 @@ export class AuthService {
     });
   }
 
-  // 🟨 READ — Buscar usuários por nome (sem senha)
+  // 🟨 READ — Buscar usuários por nome (dados públicos, sem senha/email)
   static async getByName(name: string) {
     return prisma.user.findMany({
       where: {
@@ -52,7 +51,6 @@ export class AuthService {
       select: {
         id: true,
         name: true,
-        email: true,
         bio: true,
         createdAt: true,
       },

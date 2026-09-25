@@ -1,14 +1,26 @@
 tags:
   - name: Auth
-    description: Registro, login e controle de sessão
+    description: >
+      Registro, login e controle de sessão. O login retorna um par de tokens JWT
+      (access token de curta duração + refresh token persistido no banco); o
+      access token deve ser enviado em `Authorization: Bearer <token>` nas rotas
+      protegidas.
   - name: Users
-    description: Consulta e manutenção de usuários
+    description: >
+      Consulta pública de usuários (nome, bio e data de criação — nunca e-mail
+      ou senha) e manutenção da própria conta. Um usuário só pode atualizar ou
+      remover a si mesmo; o campo `:id` da rota deve ser igual ao `userId` do
+      token de acesso, senão a API responde 403.
 
 paths:
   /api/auth/v2/register:
     post:
       tags: [Auth]
       summary: Registrar novo usuário
+      description: >
+        Cria uma conta com nome, e-mail e senha. A senha é armazenada com hash
+        (bcrypt) e nunca é retornada em nenhuma resposta. O e-mail deve ser
+        único no sistema.
       security: []
       requestBody:
         required: true
@@ -17,22 +29,30 @@ paths:
             schema: { $ref: "#/components/schemas/RegisterRequest" }
       responses:
         201:
-          description: Usuário criado
+          description: Usuário criado com sucesso.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Usuário registrado com sucesso }
         400:
-          description: Dados inválidos
+          $ref: "#/components/responses/ValidationError"
+        409:
+          description: O e-mail informado já está em uso por outra conta.
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/ValidationError" }
-        409:
-          description: Email já está em uso
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Email já está em uso }
 
   /api/auth/v2/login:
     post:
       tags: [Auth]
-      summary: Login (retorna access token e refresh token)
+      summary: Autenticar e obter tokens
+      description: >
+        Valida e-mail e senha e, em caso de sucesso, retorna um novo par de
+        tokens (access + refresh). Qualquer refresh token anterior do usuário é
+        invalidado — apenas uma sessão de refresh fica ativa por vez. Por
+        segurança, e-mail inexistente e senha incorreta retornam a mesma
+        mensagem de erro (401), sem indicar qual dado está errado.
       security: []
       requestBody:
         required: true
@@ -41,20 +61,35 @@ paths:
             schema: { $ref: "#/components/schemas/LoginRequest" }
       responses:
         200:
-          description: Login realizado
+          description: Login realizado com sucesso.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/AuthResponse" }
+              example:
+                success: true
+                message: Login realizado com sucesso
+                data:
+                  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZmE4NWY2NC01ZjE3LTQ1NjItYjNmYy0yYzk2M2Y2NmFmYTYifQ.rW2m9pQ7sV4tY1uX8zA3bC6dE0fG5hJ8kL2nO4qR7s
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZmE4NWY2NC01ZjE3LTQ1NjItYjNmYy0yYzk2M2Y2NmFmYTYifQ.4Q1z8k9vX2wq7L1nY0hR3sT6uB8dC5eF9gH2iJ4kM7o
+        400:
+          $ref: "#/components/responses/ValidationError"
         401:
-          description: Email ou senha inválidos
+          description: E-mail ou senha inválidos.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Email ou senha inválidos }
 
   /api/auth/v2/refresh:
     post:
       tags: [Auth]
-      summary: Renovar tokens
+      summary: Renovar o par de tokens
       description: >
-        Troca um refresh token válido por um novo par de tokens. O refresh token
-        antigo é invalidado (rotação). Também aceita o token no header `x-refresh-token`.
+        Troca um refresh token válido por um novo par de tokens (rotação): o
+        refresh token informado é excluído do banco e um novo é emitido e
+        persistido, então cada refresh token só pode ser usado uma vez. Aceita
+        o token tanto no corpo (`refreshToken`) quanto no header
+        `x-refresh-token`; não requer access token.
       security: []
       requestBody:
         content:
@@ -62,19 +97,32 @@ paths:
             schema: { $ref: "#/components/schemas/RefreshTokenRequest" }
       responses:
         200:
-          description: Tokens renovados
+          description: Tokens renovados com sucesso.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/AuthResponse" }
         400:
-          description: Refresh token não enviado
+          description: Refresh token não enviado (nem no corpo, nem no header `x-refresh-token`).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Refresh token é obrigatório }
         401:
-          description: Refresh token inválido ou expirado
+          description: Refresh token inválido, expirado ou já utilizado/revogado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Refresh token inválido }
 
   /api/auth/v2/logout:
     post:
       tags: [Auth]
-      summary: Logout (invalida o refresh token)
+      summary: Encerrar sessão
+      description: >
+        Revoga (remove do banco) o refresh token informado, impedindo que ele
+        seja usado para gerar novos access tokens. Requer access token válido
+        no header `Authorization`. A operação é idempotente: mesmo que o
+        refresh token já não exista, a resposta é 200.
       requestBody:
         required: true
         content:
@@ -82,63 +130,105 @@ paths:
             schema: { $ref: "#/components/schemas/RefreshTokenRequest" }
       responses:
         200:
-          description: Logout realizado
+          description: Logout realizado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Logout realizado com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
         401:
-          description: Não autenticado
+          $ref: "#/components/responses/Unauthorized"
 
   /api/auth/v2/me:
     get:
       tags: [Auth]
       summary: Dados do usuário autenticado
+      description: Retorna o `userId` e o `email` extraídos do access token enviado no header `Authorization`. Útil para validar sessão no client.
       responses:
         200:
-          description: Usuário autenticado (id e email)
-        401:
-          description: Não autenticado
-
-  /api/auth/v2/users:
-    get:
-      tags: [Users]
-      summary: Listar usuários
-      security: []
-      responses:
-        200:
-          description: Lista de usuários (sem senha)
+          description: Usuário autenticado.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean }
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: Usuário autenticado }
+                  data:
+                    type: object
+                    properties:
+                      userId: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
+                      email: { type: string, format: email, example: jorge.bublitz@email.com }
+        401:
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/v2/users:
+    get:
+      tags: [Users]
+      summary: Listar todos os usuários
+      description: Retorna todos os usuários cadastrados com dados públicos (id, nome, bio, data de criação). Requer autenticação, mas não há restrição adicional de quem pode consultar.
+      responses:
+        200:
+          description: Lista de usuários.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
                   data:
                     type: array
                     items: { $ref: "#/components/schemas/User" }
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/auth/v2/getByName:
     get:
       tags: [Users]
       summary: Buscar usuários pelo nome
-      security: []
+      description: Busca usuários cujo nome contenha o texto informado (case-insensitive, correspondência parcial).
       parameters:
         - in: query
           name: name
           required: true
-          schema: { type: string }
+          description: Texto a ser buscado no nome do usuário.
+          schema: { type: string, example: jorge }
       responses:
         200:
-          description: Usuários encontrados
+          description: Usuários encontrados (pode ser uma lista vazia se nenhum corresponder).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/User" }
         400:
-          description: Nome não informado
+          description: Parâmetro `name` não informado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Nome é obrigatório }
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/auth/v2/users/{id}:
     parameters:
       - in: path
         name: id
         required: true
-        schema: { type: string, format: uuid }
+        description: ID (UUID) do usuário-alvo. Deve ser igual ao `userId` do token de acesso.
+        schema: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
     put:
       tags: [Users]
       summary: Atualizar o próprio usuário
+      description: >
+        Atualiza nome, e-mail, senha e/ou bio do usuário autenticado. Todos os
+        campos são opcionais — envie apenas o que deseja alterar. Se o novo
+        e-mail já pertencer a outra conta, a operação falha com 409.
       requestBody:
         required: true
         content:
@@ -146,20 +236,48 @@ paths:
             schema: { $ref: "#/components/schemas/UpdateUserRequest" }
       responses:
         200:
-          description: Usuário atualizado
+          description: Usuário atualizado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Usuário atualizado com sucesso }
         400:
-          description: Dados inválidos
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
         403:
-          description: Tentativa de alterar outro usuário
+          description: Tentativa de alterar um usuário diferente do autenticado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Você não tem permissão para alterar este usuário }
         409:
-          description: Email já está em uso
+          description: O novo e-mail já está em uso por outra conta.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Email já está em uso }
     delete:
       tags: [Users]
       summary: Remover o próprio usuário
+      description: >
+        Remove permanentemente a conta autenticada. Por cascata no banco,
+        também remove favoritos, itens de watchlist, histórico, comentários,
+        amizades e refresh tokens associados a ela.
       responses:
         200:
-          description: Usuário removido (favoritos, listas e comentários são removidos em cascata)
+          description: Usuário removido com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Usuário removido com sucesso }
+        401:
+          $ref: "#/components/responses/Unauthorized"
         403:
-          description: Tentativa de remover outro usuário
+          description: Tentativa de remover um usuário diferente do autenticado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Você não tem permissão para remover este usuário }
         404:
-          description: Usuário não encontrado
+          $ref: "#/components/responses/NotFound"

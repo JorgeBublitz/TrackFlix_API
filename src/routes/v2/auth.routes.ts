@@ -14,8 +14,8 @@ const router = Router();
 
 // CRUD de usuários
 router.post('/register', validate(registerSchema), AuthController.register);
-router.get('/users', AuthController.getAll);
-router.get('/getByName', AuthController.getByName);
+router.get('/users', authMiddleware, AuthController.getAll);
+router.get('/getByName', authMiddleware, AuthController.getByName);
 router.put(
   '/users/:id',
   authMiddleware,

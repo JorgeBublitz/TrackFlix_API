@@ -1,15 +1,50 @@
 components:
+  responses:
+    ValidationError:
+      description: >
+        Dados inválidos. O corpo, parâmetros ou query não passaram na validação
+        (schema Zod). O campo `errors` lista cada campo inválido com sua mensagem.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ValidationError" }
+    Unauthorized:
+      description: Não autenticado. Access token ausente, malformado, inválido ou expirado.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorMessage" }
+          example: { success: false, message: "Não autenticado" }
+    Forbidden:
+      description: Usuário autenticado, mas sem permissão para operar sobre este recurso.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorMessage" }
+          example: { success: false, message: "Você não tem permissão para alterar este usuário" }
+    NotFound:
+      description: Recurso não encontrado (ou pertence a outro usuário).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorMessage" }
+          example: { success: false, message: "Registro não encontrado" }
+    Conflict:
+      description: Conflito - o recurso já existe (registro duplicado ou violação de unicidade).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorMessage" }
+          example: { success: false, message: "Registro já existe" }
+
   schemas:
     SuccessMessage:
       type: object
       properties:
         success: { type: boolean, example: true }
-        message: { type: string }
+        message: { type: string, example: Operação realizada com sucesso }
+
     ErrorMessage:
       type: object
       properties:
         success: { type: boolean, example: false }
-        message: { type: string }
+        message: { type: string, example: Ocorreu um erro ao processar a requisição }
+
     ValidationError:
       type: object
       properties:
@@ -20,56 +55,90 @@ components:
           items:
             type: object
             properties:
-              field: { type: string }
-              message: { type: string }
+              field: { type: string, example: password }
+              message: { type: string, example: A senha deve conter pelo menos um número }
+          example:
+            - field: password
+              message: A senha deve conter pelo menos um número
+            - field: email
+              message: Email inválido
+
     RegisterRequest:
       type: object
       required: [name, email, password]
       properties:
-        name: { type: string, minLength: 2, example: Jorge }
-        email: { type: string, format: email, example: jorge@email.com }
+        name: { type: string, minLength: 2, example: Jorge Bublitz }
+        email: { type: string, format: email, example: jorge.bublitz@email.com }
         password:
           type: string
           minLength: 8
           description: Pelo menos 8 caracteres, um número, uma letra maiúscula e um caractere especial.
           example: Senha@123
+      example:
+        name: Jorge Bublitz
+        email: jorge.bublitz@email.com
+        password: Senha@123
+
     LoginRequest:
       type: object
       required: [email, password]
       properties:
-        email: { type: string, format: email, example: jorge@email.com }
+        email: { type: string, format: email, example: jorge.bublitz@email.com }
         password: { type: string, example: Senha@123 }
+      example:
+        email: jorge.bublitz@email.com
+        password: Senha@123
+
     RefreshTokenRequest:
       type: object
       required: [refreshToken]
       properties:
-        refreshToken: { type: string }
+        refreshToken:
+          type: string
+          description: Refresh token emitido no login ou em uma renovação anterior. Também pode ser enviado no header `x-refresh-token`.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZmE4NWY2NC01ZjE3LTQ1NjItYjNmYy0yYzk2M2Y2NmFmYTYifQ.4Q1z8k9vX2wq7L1nY0hR3sT6uB8dC5eF9gH2iJ4kM7o
+      example:
+        refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZmE4NWY2NC01ZjE3LTQ1NjItYjNmYy0yYzk2M2Y2NmFmYTYifQ.4Q1z8k9vX2wq7L1nY0hR3sT6uB8dC5eF9gH2iJ4kM7o
+
     UpdateUserRequest:
       type: object
+      description: Todos os campos são opcionais; envie apenas os que deseja alterar.
       properties:
-        name: { type: string, minLength: 2 }
-        email: { type: string, format: email }
-        password: { type: string, minLength: 8 }
-        bio: { type: string, maxLength: 160 }
+        name: { type: string, minLength: 2, example: Jorge L. Bublitz }
+        email: { type: string, format: email, example: jorge.novo@email.com }
+        password: { type: string, minLength: 8, example: NovaSenha@456 }
+        bio: { type: string, maxLength: 160, example: "Apaixonado por ficção científica e cinema cult." }
+      example:
+        bio: "Apaixonado por ficção científica e cinema cult."
+
     TokenPair:
       type: object
       properties:
-        accessToken: { type: string }
-        refreshToken: { type: string }
+        accessToken:
+          type: string
+          description: "JWT de curta duração, enviado no header `Authorization: Bearer <token>`."
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZmE4NWY2NC01ZjE3LTQ1NjItYjNmYy0yYzk2M2Y2NmFmYTYiLCJlbWFpbCI6ImpvcmdlLmJ1YmxpdHpAZW1haWwuY29tIn0.rW2m9pQ7sV4tY1uX8zA3bC6dE0fG5hJ8kL2nO4qR7s
+        refreshToken:
+          type: string
+          description: JWT de longa duração, persistido no banco. Usado apenas em `/refresh` e `/logout`.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZmE4NWY2NC01ZjE3LTQ1NjItYjNmYy0yYzk2M2Y2NmFmYTYifQ.4Q1z8k9vX2wq7L1nY0hR3sT6uB8dC5eF9gH2iJ4kM7o
+
     AuthResponse:
       type: object
       properties:
         success: { type: boolean, example: true }
-        message: { type: string }
+        message: { type: string, example: Login realizado com sucesso }
         data: { $ref: "#/components/schemas/TokenPair" }
+
     User:
       type: object
+      description: Dados públicos do usuário (sem e-mail nem senha).
       properties:
-        id: { type: string, format: uuid }
-        name: { type: string }
-        email: { type: string, format: email }
-        bio: { type: string, nullable: true }
-        createdAt: { type: string, format: date-time }
+        id: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
+        name: { type: string, example: Jorge Bublitz }
+        bio: { type: string, nullable: true, example: "Apaixonado por ficção científica e cinema cult." }
+        createdAt: { type: string, format: date-time, example: "2025-03-12T14:32:07.000Z" }
+
     CrossoverRequest:
       type: object
       required: [crossoverId]
@@ -78,15 +147,19 @@ components:
           oneOf:
             - type: string
             - type: integer
-          description: ID do filme ou série na TMDB (número ou texto).
+          description: ID do filme ou série na TMDB (número ou texto, normalizado para string no servidor).
           example: 550
+      example:
+        crossoverId: 550
+
     ListItem:
       type: object
       properties:
-        id: { type: string, format: uuid }
-        userId: { type: string, format: uuid }
-        crossoverId: { type: string, example: "550" }
-        createdAt: { type: string, format: date-time }
+        id: { type: string, format: uuid, example: 9c3b6e2a-1d4f-4a7b-8e2c-5f9a0d1b3c4e }
+        userId: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
+        crossoverId: { type: string, example: "550", description: "ID do filme/série na TMDB (ex.: 550 = Fight Club)." }
+        createdAt: { type: string, format: date-time, example: "2025-03-12T14:32:07.000Z" }
+
     CreateCommentRequest:
       type: object
       required: [crossoverId, content]
@@ -96,22 +169,29 @@ components:
             - type: string
             - type: integer
           example: 550
-        content: { type: string, maxLength: 1000, example: Filme incrível! }
+        content: { type: string, maxLength: 1000, example: "Um dos melhores filmes que já vi, o final me pegou de surpresa!" }
+      example:
+        crossoverId: 550
+        content: "Um dos melhores filmes que já vi, o final me pegou de surpresa!"
+
     EditCommentRequest:
       type: object
       required: [content]
       properties:
-        content: { type: string, maxLength: 1000 }
+        content: { type: string, maxLength: 1000, example: "Revendo hoje, ainda é incrível." }
+      example:
+        content: "Revendo hoje, ainda é incrível."
+
     Comment:
       type: object
       properties:
-        id: { type: string, format: uuid }
-        crossoverId: { type: string }
-        content: { type: string }
-        likes: { type: integer }
-        createdAt: { type: string, format: date-time }
+        id: { type: string, format: uuid, example: 7b2e1f4a-9c3d-4e5f-8a6b-1c2d3e4f5a6b }
+        crossoverId: { type: string, example: "550" }
+        content: { type: string, example: "Um dos melhores filmes que já vi, o final me pegou de surpresa!" }
+        likes: { type: integer, example: 12, minimum: 0, description: "Nunca fica negativo; o mínimo é 0." }
+        createdAt: { type: string, format: date-time, example: "2025-03-12T14:32:07.000Z" }
         user:
           type: object
           properties:
-            id: { type: string, format: uuid }
-            name: { type: string }
+            id: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
+            name: { type: string, example: Jorge Bublitz }

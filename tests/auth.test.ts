@@ -103,19 +103,29 @@ describe('Login e sessão', () => {
 });
 
 describe('Usuários', () => {
-  it('lista e busca usuários sem expor a senha', async () => {
-    await createUser('Maria Silva');
-    await createUser('João Souza');
+  it('exige autenticação para listar/buscar usuários', async () => {
+    await api().get('/api/auth/v2/users').expect(401);
+    await api().get('/api/auth/v2/getByName?name=maria').expect(401);
+  });
 
-    const all = await api().get('/api/auth/v2/users').expect(200);
+  it('lista e busca usuários sem expor senha ou email', async () => {
+    await createUser('Maria Silva');
+    const requester = await createUser('João Souza');
+
+    const all = await api().get('/api/auth/v2/users').set(requester.auth).expect(200);
     expect(all.body.data).toHaveLength(2);
     expect(all.body.data[0]).not.toHaveProperty('password');
+    expect(all.body.data[0]).not.toHaveProperty('email');
 
-    const found = await api().get('/api/auth/v2/getByName?name=maria').expect(200);
+    const found = await api()
+      .get('/api/auth/v2/getByName?name=maria')
+      .set(requester.auth)
+      .expect(200);
     expect(found.body.data).toHaveLength(1);
     expect(found.body.data[0].name).toBe('Maria Silva');
+    expect(found.body.data[0]).not.toHaveProperty('email');
 
-    await api().get('/api/auth/v2/getByName').expect(400);
+    await api().get('/api/auth/v2/getByName').set(requester.auth).expect(400);
   });
 
   it('atualiza o próprio perfil', async () => {

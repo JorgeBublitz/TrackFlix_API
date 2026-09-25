@@ -1,253 +1,543 @@
 tags:
   - name: Favorites
-    description: Filmes e séries favoritos
+    description: >
+      Filmes e séries marcados como favoritos pelo usuário (referenciados pelo
+      `crossoverId` da TMDB). Cada usuário só pode ver e alterar seus próprios
+      favoritos; a listagem pública expõe apenas os IDs, sem dados sensíveis.
   - name: Watchlist
-    description: Filmes e séries para assistir depois
+    description: >
+      Filmes e séries que o usuário pretende assistir depois. Funciona de
+      forma equivalente aos favoritos (mesmas regras de unicidade e acesso).
   - name: History
-    description: Filmes e séries visualizados
+    description: >
+      Histórico de filmes e séries visualizados pelo usuário, ordenado do
+      mais recente para o mais antigo. Registrar um item já existente apenas
+      atualiza sua data, movendo-o para o topo (upsert), em vez de duplicá-lo.
   - name: Comments
-    description: Comentários em filmes e séries
+    description: >
+      Comentários de usuários em filmes e séries. Qualquer usuário autenticado
+      pode comentar e curtir; edição e remoção são restritas ao autor do
+      comentário.
   - name: Friends
-    description: Amizades entre usuários
+    description: >
+      Relação de amizade unidirecional entre usuários (quem adiciona quem).
+      Um usuário não pode adicionar a si mesmo como amigo.
 
 paths:
   /api/favorites/v2/favorite:
     get:
       tags: [Favorites]
       summary: Listar favoritos do usuário autenticado
+      description: Retorna os `crossoverId` (TMDB) marcados como favoritos pelo usuário autenticado, do mais recente para o mais antigo.
       responses:
         200:
-          description: Lista de IDs da TMDB
+          description: Lista de IDs da TMDB.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean }
-                  data: { type: array, items: { type: string } }
+                  success: { type: boolean, example: true }
+                  data: { type: array, items: { type: string }, example: ["550", "1399", "238"] }
+        401:
+          $ref: "#/components/responses/Unauthorized"
     post:
       tags: [Favorites]
       summary: Adicionar favorito
+      description: Marca um filme/série (identificado por `crossoverId`) como favorito do usuário autenticado. Não é permitido favoritar o mesmo item duas vezes.
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CrossoverRequest" }
       responses:
-        201: { description: Favorito adicionado }
-        400: { description: crossoverId inválido }
-        409: { description: Item já está nos favoritos }
+        201:
+          description: Favorito adicionado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Favorito adicionado com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        409:
+          description: Este item já está nos favoritos do usuário.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Registro já existe }
     delete:
       tags: [Favorites]
       summary: Remover favorito
+      description: >
+        Remove um item dos favoritos do usuário autenticado. Operação
+        idempotente: remover um item que não está nos favoritos ainda
+        responde 200 (nenhuma linha é afetada, mas não é um erro).
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CrossoverRequest" }
       responses:
-        200: { description: Favorito removido }
+        200:
+          description: Favorito removido com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Favorito removido com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/favorites/v2/publicFavorite:
     get:
       tags: [Favorites]
       summary: Favoritos públicos de um usuário
+      description: Lista os `crossoverId` favoritados por qualquer usuário, dado seu `userId`. Não requer autenticação.
       security: []
       parameters:
-        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
+        - in: query
+          name: userId
+          required: true
+          description: ID (UUID) do usuário cujos favoritos serão listados.
+          schema: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
       responses:
-        200: { description: Lista de IDs da TMDB }
-        400: { description: userId não informado }
+        200:
+          description: Lista de IDs da TMDB (vazia se o usuário não tiver favoritos ou não existir).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { type: array, items: { type: string }, example: ["550", "1399"] }
+        400:
+          description: Parâmetro `userId` não informado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: UserId é obrigatório }
 
   /api/watchList/v2/watchlist:
     get:
       tags: [Watchlist]
       summary: Listar watchlist do usuário autenticado
+      description: Retorna os itens da watchlist do usuário autenticado, mais recentes primeiro.
       responses:
         200:
-          description: Itens da watchlist (mais recentes primeiro)
+          description: Itens da watchlist.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean }
+                  success: { type: boolean, example: true }
                   data: { type: array, items: { $ref: "#/components/schemas/ListItem" } }
+        401:
+          $ref: "#/components/responses/Unauthorized"
     post:
       tags: [Watchlist]
       summary: Adicionar à watchlist
+      description: Adiciona um filme/série à watchlist do usuário autenticado. Não é permitido adicionar o mesmo item duas vezes.
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CrossoverRequest" }
       responses:
-        201: { description: Item adicionado }
-        409: { description: Item já está na watchlist }
+        201:
+          description: Item adicionado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Item adicionado com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        409:
+          description: Este item já está na watchlist do usuário.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Registro já existe }
     delete:
       tags: [Watchlist]
       summary: Remover da watchlist
+      description: >
+        Remove um item da watchlist do usuário autenticado. Operação
+        idempotente: remover um item ausente ainda responde 200.
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CrossoverRequest" }
       responses:
-        200: { description: Item removido }
+        200:
+          description: Item removido com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Item removido com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/watchList/v2/publicWatchlist:
     get:
       tags: [Watchlist]
       summary: Watchlist pública de um usuário
+      description: Lista os itens da watchlist de qualquer usuário, dado seu `userId`. Não requer autenticação.
       security: []
       parameters:
-        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
-      responses:
-        200: { description: Itens da watchlist }
-
-  /api/history/v2/history:
-    get:
-      tags: [History]
-      summary: Listar histórico do usuário autenticado
+        - in: query
+          name: userId
+          required: true
+          description: ID (UUID) do usuário cuja watchlist será listada.
+          schema: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
       responses:
         200:
-          description: Itens do histórico (mais recentes primeiro)
+          description: Itens da watchlist.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean }
+                  success: { type: boolean, example: true }
                   data: { type: array, items: { $ref: "#/components/schemas/ListItem" } }
+        400:
+          description: Parâmetro `userId` não informado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: UserId é obrigatório }
+
+  /api/history/v2/history:
+    get:
+      tags: [History]
+      summary: Listar histórico do usuário autenticado
+      description: Retorna os itens do histórico de visualização, mais recentes primeiro.
+      responses:
+        200:
+          description: Itens do histórico.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { type: array, items: { $ref: "#/components/schemas/ListItem" } }
+        401:
+          $ref: "#/components/responses/Unauthorized"
     post:
       tags: [History]
       summary: Registrar item no histórico
-      description: Se o item já estiver no histórico, ele volta para o topo.
+      description: >
+        Registra que o usuário autenticado visualizou um filme/série. Se o
+        item já estiver no histórico, a operação é um upsert: apenas a data é
+        atualizada e o item volta para o topo da lista, sem criar duplicata
+        nem retornar erro de conflito.
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CrossoverRequest" }
       responses:
-        201: { description: Item registrado }
+        201:
+          description: Item registrado (ou atualizado, se já existia) com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Item registrado com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
     delete:
       tags: [History]
       summary: Limpar histórico
+      description: Remove todos os itens do histórico do usuário autenticado. Operação idempotente e irreversível.
       responses:
-        200: { description: Histórico limpo }
+        200:
+          description: Histórico limpo com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Histórico limpo com sucesso }
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/history/v2/publicHistory:
     get:
       tags: [History]
       summary: Histórico público de um usuário
+      description: Lista os itens do histórico de qualquer usuário, dado seu `userId`. Não requer autenticação.
       security: []
       parameters:
-        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
+        - in: query
+          name: userId
+          required: true
+          description: ID (UUID) do usuário cujo histórico será listado.
+          schema: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
       responses:
-        200: { description: Itens do histórico }
+        200:
+          description: Itens do histórico.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { type: array, items: { $ref: "#/components/schemas/ListItem" } }
+        400:
+          description: Parâmetro `userId` não informado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: UserId é obrigatório }
 
   /api/comments/v2/comments:
     post:
       tags: [Comments]
       summary: Comentar em um filme/série
+      description: Cria um comentário do usuário autenticado em um filme/série identificado por `crossoverId`. Um mesmo usuário pode postar múltiplos comentários no mesmo item.
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CreateCommentRequest" }
       responses:
-        201: { description: Comentário criado }
-        400: { description: Dados inválidos }
+        201:
+          description: Comentário criado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Comentário adicionado com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/comments/v2/comments/{crossoverId}:
     get:
       tags: [Comments]
       summary: Listar comentários de um filme/série
+      description: Retorna todos os comentários feitos em um filme/série (identificado pelo `crossoverId` da TMDB), mais recentes primeiro, incluindo id e nome do autor. Não requer autenticação.
       security: []
       parameters:
-        - { in: path, name: crossoverId, required: true, schema: { type: string } }
+        - in: path
+          name: crossoverId
+          required: true
+          description: ID do filme/série na TMDB (não é o ID interno do comentário).
+          schema: { type: string, example: "550" }
       responses:
         200:
-          description: Comentários (mais recentes primeiro)
+          description: Comentários do item (lista vazia se nenhum comentário existir).
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean }
+                  success: { type: boolean, example: true }
                   data: { type: array, items: { $ref: "#/components/schemas/Comment" } }
+        400:
+          $ref: "#/components/responses/ValidationError"
 
   /api/comments/v2/comments/{commentId}:
     parameters:
-      - { in: path, name: commentId, required: true, schema: { type: string, format: uuid } }
+      - in: path
+        name: commentId
+        required: true
+        description: ID (UUID) interno do comentário.
+        schema: { type: string, format: uuid, example: 7b2e1f4a-9c3d-4e5f-8a6b-1c2d3e4f5a6b }
     put:
       tags: [Comments]
       summary: Editar o próprio comentário
+      description: Atualiza o conteúdo de um comentário. Só é possível editar comentários do próprio usuário autenticado — a busca já filtra por autor, então um comentário de outro usuário (ou inexistente) resulta em 404.
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/EditCommentRequest" }
       responses:
-        200: { description: Comentário editado }
-        404: { description: Comentário não encontrado ou de outro usuário }
+        200:
+          description: Comentário editado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Comentário editado com sucesso }
+        400:
+          $ref: "#/components/responses/ValidationError"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          description: Comentário não encontrado ou pertence a outro usuário.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Comentário não encontrado }
     delete:
       tags: [Comments]
       summary: Remover o próprio comentário
+      description: Remove um comentário do usuário autenticado. Assim como na edição, só é possível remover comentários próprios; caso contrário (ou se não existir), retorna 404.
       responses:
-        200: { description: Comentário removido }
-        404: { description: Comentário não encontrado ou de outro usuário }
+        200:
+          description: Comentário removido com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Comentário removido com sucesso }
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          description: Comentário não encontrado ou pertence a outro usuário.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Comentário não encontrado }
 
   /api/comments/v2/comments/{commentId}/like:
     post:
       tags: [Comments]
       summary: Curtir comentário
+      description: Incrementa em 1 o contador de curtidas do comentário. Qualquer usuário autenticado pode curtir qualquer comentário, inclusive múltiplas vezes (não há registro de "quem curtiu").
       parameters:
-        - { in: path, name: commentId, required: true, schema: { type: string, format: uuid } }
+        - in: path
+          name: commentId
+          required: true
+          schema: { type: string, format: uuid, example: 7b2e1f4a-9c3d-4e5f-8a6b-1c2d3e4f5a6b }
       responses:
-        200: { description: Like adicionado }
-        404: { description: Comentário não encontrado }
+        200:
+          description: Like adicionado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Like adicionado ao comentário com sucesso }
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
 
   /api/comments/v2/comments/{commentId}/unlike:
     post:
       tags: [Comments]
-      summary: Remover curtida (o contador nunca fica negativo)
+      summary: Remover curtida
+      description: Decrementa em 1 o contador de curtidas do comentário, com piso em 0 — o contador nunca fica negativo, mesmo se chamado repetidamente.
       parameters:
-        - { in: path, name: commentId, required: true, schema: { type: string, format: uuid } }
+        - in: path
+          name: commentId
+          required: true
+          schema: { type: string, format: uuid, example: 7b2e1f4a-9c3d-4e5f-8a6b-1c2d3e4f5a6b }
       responses:
-        200: { description: Like removido }
-        404: { description: Comentário não encontrado }
+        200:
+          description: Like removido com sucesso (ou nenhuma alteração, se já estava em 0).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Like removido do comentário com sucesso }
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
 
   /api/friends/v2/friends:
     get:
       tags: [Friends]
       summary: Listar amigos do usuário autenticado
+      description: Retorna os `userId` dos amigos do usuário autenticado, mais recentes primeiro.
       responses:
-        200: { description: Lista de IDs dos amigos }
+        200:
+          description: Lista de IDs dos amigos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { type: array, items: { type: string, format: uuid }, example: ["3fa85f64-5f17-4562-b3fc-2c963f66afa6"] }
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/friends/v2/friends/{friendId}:
     parameters:
-      - { in: path, name: friendId, required: true, schema: { type: string, format: uuid } }
+      - in: path
+        name: friendId
+        required: true
+        description: ID (UUID) do usuário a ser adicionado/removido como amigo.
+        schema: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
     post:
       tags: [Friends]
       summary: Adicionar amigo
+      description: Cria uma relação de amizade do usuário autenticado para o `friendId` informado. A relação não é bidirecional automaticamente.
       responses:
-        201: { description: Amigo adicionado }
-        400: { description: Tentativa de adicionar a si mesmo }
-        404: { description: Usuário não encontrado }
-        409: { description: Já são amigos }
+        201:
+          description: Amigo adicionado com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Amigo adicionado com sucesso }
+        400:
+          description: Tentativa de adicionar a si mesmo como amigo.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Você não pode adicionar a si mesmo }
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          description: O usuário informado em `friendId` não existe.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Registro relacionado não encontrado }
+        409:
+          description: Os dois usuários já são amigos.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: Registro já existe }
     delete:
       tags: [Friends]
       summary: Remover amigo
+      description: "Remove a relação de amizade do usuário autenticado com o `friendId` informado. Operação idempotente: remover uma amizade inexistente ainda responde 200."
       responses:
-        200: { description: Amigo removido }
+        200:
+          description: Amigo removido com sucesso.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessMessage" }
+              example: { success: true, message: Amigo removido com sucesso }
+        401:
+          $ref: "#/components/responses/Unauthorized"
 
   /api/friends/v2/publicFriends:
     get:
       tags: [Friends]
       summary: Amigos públicos de um usuário
+      description: Lista os `userId` dos amigos de qualquer usuário, dado seu `userId`. Não requer autenticação.
       security: []
       parameters:
-        - { in: query, name: userId, required: true, schema: { type: string, format: uuid } }
+        - in: query
+          name: userId
+          required: true
+          description: ID (UUID) do usuário cujos amigos serão listados.
+          schema: { type: string, format: uuid, example: 3fa85f64-5f17-4562-b3fc-2c963f66afa6 }
       responses:
-        200: { description: Lista de IDs dos amigos }
+        200:
+          description: Lista de IDs dos amigos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { type: array, items: { type: string, format: uuid }, example: ["3fa85f64-5f17-4562-b3fc-2c963f66afa6"] }
+        400:
+          description: Parâmetro `userId` não informado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorMessage" }
+              example: { success: false, message: UserId é obrigatório }
