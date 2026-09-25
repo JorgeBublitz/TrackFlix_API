@@ -127,7 +127,7 @@ export class AuthController {
    */
   static async update(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const data = req.body;
 
       // Impede que um usuário altere dados de outro
@@ -155,7 +155,7 @@ export class AuthController {
    */
   static async delete(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       if (req.user && req.user.userId !== id) {
         return res.status(403).json({

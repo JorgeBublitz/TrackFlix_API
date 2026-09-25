@@ -28,7 +28,7 @@ export class CommentController {
      */
     static async listComments(req: Request, res: Response) {
         try {
-            const { crossoverId } = req.params;
+            const crossoverId = req.params.crossoverId as string;
             const comments = await CommentService.listComments(crossoverId);
             return res.status(200).json({ success: true, data: comments });
         } catch (error) {
@@ -43,7 +43,7 @@ export class CommentController {
     static async editComment(req: Request, res: Response) {
         try {
             const userId = req.user!.userId;
-            const { commentId } = req.params;
+            const commentId = req.params.commentId as string;
             const { content } = req.body;
             if (!content) {
                 throw new AppError('Content é obrigatório', 400);
@@ -62,7 +62,7 @@ export class CommentController {
     static async deleteComment(req: Request, res: Response) {
         try {
             const userId = req.user!.userId;
-            const { commentId } = req.params;
+            const commentId = req.params.commentId as string;
             await CommentService.deleteComment(commentId, userId);
             return res.status(200).json({ success: true, message: 'Comentário removido com sucesso' });
         } catch (error) {
@@ -76,7 +76,7 @@ export class CommentController {
      */
     static async likeComment(req: Request, res: Response) {
         try {
-            const { commentId } = req.params;
+            const commentId = req.params.commentId as string;
             await CommentService.likeComment(commentId);
             return res.status(200).json({ success: true, message: 'Like adicionado ao comentário com sucesso' });
         } catch (error) {
@@ -90,7 +90,7 @@ export class CommentController {
      */
     static async unlikeComment(req: Request, res: Response) {
         try {
-            const { commentId } = req.params;
+            const commentId = req.params.commentId as string;
             await CommentService.unlikeComment(commentId);
             return res.status(200).json({ success: true, message: 'Like removido do comentário com sucesso' });
         } catch (error) {

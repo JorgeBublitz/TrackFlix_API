@@ -11,7 +11,7 @@ export class FriendsController {
     static async addFriend(req: Request, res: Response) {
         try {
             const userId = req.user!.userId;
-            const friendId = req.params.friendId;
+            const friendId = req.params.friendId as string;
 
             if (!friendId) {
                 throw new AppError('friendId é obrigatório', 400);
@@ -34,7 +34,7 @@ export class FriendsController {
     static async removeFriend(req: Request, res: Response) {
         try {
             const userId = req.user!.userId;
-            const friendId = req.params.friendId;
+            const friendId = req.params.friendId as string;
             await FriendsService.removeFriend(userId, friendId);
             res.status(200).json({ success: true, message: 'Amigo removido com sucesso' });
         } catch (error) {
